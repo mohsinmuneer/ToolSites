@@ -1,0 +1,36 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Are my PDFs uploaded?", "No. Merging happens on your device."),
+        new("Can I reorder files?", "Yes. Use the Up and Down buttons before merging."),
+        new("Why did merging fail?", "A file may be password protected or damaged.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><input id="f" type="file" accept="application/pdf" multiple></div><ol id="list"></ol><div class="row"><button id="go" type="button">Merge PDFs</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Merge PDF Files</h2>
+  <p>Add two or more PDF files, put them in the order you want with the Up and Down buttons, and press Merge. Your combined PDF downloads as merged.pdf.</p>
+  <h2>About this tool</h2>
+  <p>Merging copies every page from each file into one new document, in the order shown. Password-protected or damaged PDFs cannot be merged and will show an error. The work is done in your browser with an open-source PDF library, so your documents are not uploaded to any server, which is helpful for contracts, invoices and personal records.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js" crossorigin="anonymous"></script>
+<script>
+let files=[]; const list=$('list');
+function render(){list.textContent=''; files.forEach((f,i)=>{const li=document.createElement('li'); li.textContent=f.name+' ('+kb(f.size)+') ';
+const up=document.createElement('button'); up.className='secondary'; up.type='button'; up.textContent='Up'; up.onclick=()=>{if(i>0){const t=files[i-1]; files[i-1]=files[i]; files[i]=t; render();}};
+const dn=document.createElement('button'); dn.className='secondary'; dn.type='button'; dn.textContent='Down'; dn.onclick=()=>{if(i<files.length-1){const t=files[i+1]; files[i+1]=files[i]; files[i]=t; render();}};
+const rm=document.createElement('button'); rm.className='secondary'; rm.type='button'; rm.textContent='Remove'; rm.onclick=()=>{files.splice(i,1); render();}; li.append(up,dn,rm); list.appendChild(li);});}
+$('f').addEventListener('change',()=>{files=files.concat(Array.from($('f').files)); $('f').value=''; render();});
+on('go',async()=>{ if(files.length<2) return fail('out','Add at least two PDF files.'); if(typeof PDFLib==='undefined') return fail('out','The PDF library could not load. Check your connection.');
+try{show('out','Merging...'); const m=await PDFLib.PDFDocument.create(); for(const f of files){const s=await PDFLib.PDFDocument.load(await f.arrayBuffer()); const pg=await m.copyPages(s,s.getPageIndices()); pg.forEach(p=>m.addPage(p));}
+const bytes=await m.save(); saveBlob(new Blob([bytes],{type:'application/pdf'}),'merged.pdf'); show('out','Merged '+files.length+' files into merged.pdf');}catch(e){fail('out','Could not merge. A file may be damaged or password protected.');}});
+</script>

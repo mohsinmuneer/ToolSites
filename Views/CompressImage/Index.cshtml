@@ -1,0 +1,34 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Is my photo uploaded?", "No. It is processed on your device."),
+        new("Why is the output always JPG?", "JPG allows adjustable compression, which is needed to hit a size target."),
+        new("What if the target is too small?", "The tool shrinks the dimensions gradually. If it still cannot fit, choose a larger target.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><input id="f" type="file" accept="image/jpeg,image/png,image/webp"><label>Target size (KB) <input id="kb" type="number" step="any" value="100" style="width:90px" min="5"></label><button id="go" type="button">Compress</button></div><div id="links"></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Compress Image to a Target Size (KB)</h2>
+  <p>Choose an image, enter the size you need in KB (for example 100 KB for a form upload) and press Compress. The tool lowers the JPG quality step by step and, if needed, shrinks the pixel size slightly until the file fits.</p>
+  <h2>About this tool</h2>
+  <p>Many websites and government forms limit photo uploads to a set size. This tool searches for the highest quality that still fits your limit. The result is always a JPG, so PNG images lose any transparency (it becomes white). Everything happens in your browser using the canvas, so your photo is never uploaded. Very small targets on large photos will reduce the pixel dimensions as well.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',async()=>{const file=$('f').files[0], target=num('kb')*1024; $('links').textContent=''; if(!file) return fail('out','Please choose an image.'); if(!(target>=5120)) return fail('out','Choose a target of at least 5 KB.');
+try{const img=await loadImage(file); let scale=1, best=null;
+for(let s=0;s<12 && !best;s++){const w=Math.max(1,Math.round(img.naturalWidth*scale)), h=Math.max(1,Math.round(img.naturalHeight*scale)); const c=drawOnWhite(img,w,h);
+let lo=0.1, hi=0.95, ok=null; for(let i=0;i<7;i++){const q=(lo+hi)/2; const b=await canvasBlob(c,'image/jpeg',q); if(b.size<=target){ok=b; lo=q;} else {hi=q;}}
+if(ok){best=ok; best._w=w; best._h=h;} else {scale*=0.85;}}
+if(!best) return fail('out','Could not reach that size. Try a larger target.');
+addLink('links',best,baseName(file)+'-compressed.jpg','Download compressed image ('+kb(best.size)+')'); show('out','Done: '+kb(file.size)+' to '+kb(best.size),['Output is a JPG of '+best._w+' x '+best._h+' pixels. Transparent areas become white.']);}
+catch(e){fail('out',e.message);}});
+</script>

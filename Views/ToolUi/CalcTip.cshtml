@@ -1,0 +1,27 @@
+@model ToolDefinition
+<p>Enter the bill amount and number of people, then select a tip percentage.</p>
+<div class="row"><label>Bill ($) <input id="bill" type="number" min="0" step="any" value="60"></label>
+<label>People <input id="ppl" type="number" min="1" step="1" value="2"></label></div>
+<div class="row"><label>Tip (%) <input id="pct" type="number" min="0" step="any" value="18"></label>
+<button type="button" class="secondary" data-t="15">15%</button><button type="button" class="secondary" data-t="18">18%</button>
+<button type="button" class="secondary" data-t="20">20%</button><button type="button" class="secondary" data-t="25">25%</button></div>
+<button id="go" type="button">Calculate</button>
+<div id="out" class="result" aria-live="polite"></div>
+<p class="muted">Your input stays in your browser.</p>
+<script>
+document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { $('pct').value = b.dataset.t; $('go').click(); });
+$('go').onclick = () => {
+  const bill = $('bill').valueAsNumber, p = $('ppl').valueAsNumber, pct = $('pct').valueAsNumber;
+  if (!Number.isFinite(bill) || bill < 0 || !Number.isInteger(p) || p < 1 ||
+      !Number.isFinite(pct) || pct < 0) {
+    show('out', 'Enter a bill and tip of zero or more, and a whole number of people.', false);
+    return;
+  }
+  const tip = bill * (pct / 100), tot = bill + tip;
+  if (!Number.isFinite(tot)) {
+    show('out', 'The total is too large. Check your bill and tip.', false);
+    return;
+  }
+  show('out', ['Tip: ' + usd(tip), 'Total: ' + usd(tot), 'Per person: ' + usd(tot / p) + ' (tip ' + usd(tip / p) + ' each)']);
+};
+</script>

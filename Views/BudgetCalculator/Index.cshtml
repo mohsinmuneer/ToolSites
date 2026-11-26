@@ -1,0 +1,29 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("What is the 50/30/20 rule?", "A simple guideline: 50% of after-tax income to needs, 30% to wants and 20% to savings or debt payoff."),
+        new("Should I use income before or after tax?", "After tax, meaning your take-home pay."),
+        new("Does the tool save my numbers?", "No. Nothing is stored or sent anywhere.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Monthly income after tax ($) <input id="inc" type="number" step="any" value="4000" style="width:120px"></label></div><div class="row"><label>Rent or mortgage <input id="e1" type="number" step="any" value="1200" style="width:90px"></label><label>Utilities <input id="e2" type="number" step="any" value="200" style="width:90px"></label><label>Groceries <input id="e3" type="number" step="any" value="450" style="width:90px"></label><label>Transport <input id="e4" type="number" step="any" value="300" style="width:90px"></label></div><div class="row"><label>Insurance <input id="e5" type="number" step="any" value="150" style="width:90px"></label><label>Debt payments <input id="e6" type="number" step="any" value="250" style="width:90px"></label><label>Entertainment and dining <input id="e7" type="number" step="any" value="300" style="width:90px"></label><label>Savings <input id="e8" type="number" step="any" value="400" style="width:90px"></label><label>Other <input id="e9" type="number" step="any" value="150" style="width:90px"></label><button id="go" type="button">Calculate</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Monthly Budget Calculator</h2>
+  <p>Enter your monthly take-home income and your usual spending in each category, including what you set aside as savings. Press Calculate to see whether you have money left over or are overspending, and how your split compares with a common rule of thumb.</p>
+  <h2>About this tool</h2>
+  <p>The 50/30/20 rule suggests spending about 50% of after-tax income on needs, 30% on wants and 20% on savings and extra debt payments. It is a guideline, not a law: in high-cost cities needs often take more than half, and you can adjust the split to your goals. Tracking a month of real spending and entering it here is the quickest way to see where your money goes.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',()=>{const inc=num('inc'); if(!(inc>0)) return fail('out','Enter your monthly income.'); let t=0; for(let k=1;k<=9;k++){t+=num('e'+k)||0;}
+const needs=(num('e1')||0)+(num('e2')||0)+(num('e3')||0)+(num('e4')||0)+(num('e5')||0)+(num('e6')||0), wants=num('e7')||0, sav=num('e8')||0, left=inc-t;
+show('out',(left>=0?'Left over: ':'Over budget by: ')+money(Math.abs(left)),['Total expenses: '+money(t),'Needs (rent to debt): '+fmtN(needs/inc*100,1)+'% of income (50/30/20 guide: 50%)','Wants (entertainment): '+fmtN(wants/inc*100,1)+'% (guide: 30%)','Savings: '+fmtN(sav/inc*100,1)+'% (guide: 20%)']);});
+</script>

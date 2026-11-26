@@ -1,0 +1,41 @@
+@model ToolDefinition
+<p>Enter a three-digit or six-digit hexadecimal color code.</p>
+<form id="tool-inputs" class="batch-tool" novalidate>
+  <label for="hex">HEX color</label>
+  <input id="hex" type="text" value="#0a7d6e">
+  <div class="row">
+    <button type="submit">Calculate</button>
+    <button class="secondary" type="reset">Reset</button>
+  </div>
+</form>
+<p class="muted">Your input stays in your browser.</p>
+<div id="out" class="result" aria-live="polite"></div>
+<style>
+.batch-tool { display: grid; gap: 4px; }
+.batch-tool input, .batch-tool select, .batch-tool textarea { width: 100%; min-height: 44px; margin-bottom: 8px; }
+.batch-tool textarea { font: inherit; resize: vertical; }
+.batch-tool button { min-height: 44px; }
+#out { overflow-wrap: anywhere; }
+#qr-preview canvas { max-width: 100%; height: auto; }
+</style>
+<script>
+function calculate() {
+  let hex = $('hex').value.trim().replace(/^#/, '');
+  if (!/^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) throw new Error('Enter a 3- or 6-digit HEX color, such as #0a7d6e.');
+  if (hex.length === 3) hex = [...hex].map(digit => digit.repeat(2)).join('');
+  return ['rgb(' + hex.match(/../g).map(pair => parseInt(pair, 16)).join(', ') + ')'];
+}
+
+$('tool-inputs').addEventListener('submit', event => {
+  event.preventDefault();
+  try {
+    show('out', calculate());
+  } catch (error) {
+    show('out', error.message, false);
+  }
+});
+
+$('tool-inputs').addEventListener('reset', () => {
+  $('out').textContent = '';
+  });
+</script>

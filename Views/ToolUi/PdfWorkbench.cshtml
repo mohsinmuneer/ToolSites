@@ -1,0 +1,59 @@
+@model ToolDefinition
+@{
+    var mode = Model.Opts!["action"];
+    var instructions = mode switch
+    {
+        "slides" => "Choose a PDF to make one image slide per page. Text inside the image stays part of the picture.",
+        "rotate" => "Choose a PDF and a turn direction. Leave Pages blank to rotate every page.",
+        "remove" => "Choose a PDF and enter the original page numbers you want to remove.",
+        "number" => "Choose a PDF, then set the first page to label and the number it should show.",
+        _ => "Choose a PDF and enter the label to place in the center of each selected page."
+    };
+}
+<p>@instructions</p>
+<form id="pdf-form" data-pdf-mode="@mode" novalidate>
+    <label class="pdf-file-picker">
+        <strong>Choose a PDF</strong>
+        <span class="muted">Select a file or drop it here.</span>
+        <input id="pdf-file" type="file" accept=".pdf,application/pdf">
+    </label>
+    <p id="pdf-selection" class="muted" aria-live="polite">No file selected.</p>
+    @if (mode is "rotate" or "remove" or "watermark")
+    {
+        <div class="row">
+            <label>Pages <input id="pdf-pages" type="text" placeholder="@(mode == "remove" ? "2,5-7" : "All pages")" maxlength="2000"></label>
+            @if (mode == "rotate")
+            {
+                <label>Rotate <select id="pdf-turn">
+                    <option value="90">90° clockwise</option>
+                    <option value="270">90° counterclockwise</option>
+                    <option value="180">180°</option>
+                </select></label>
+            }
+        </div>
+    }
+    @if (mode == "number")
+    {
+        <div class="row">
+            <label>First PDF page to label <input id="pdf-first" type="number" min="1" max="200" step="1" value="1"></label>
+            <label>Number to print there <input id="pdf-start" type="number" min="1" max="9999" step="1" value="1"></label>
+            <label>Footer <select id="pdf-footer">
+                <option value="center">Bottom center</option>
+                <option value="right">Bottom right</option>
+            </select></label>
+        </div>
+    }
+    @if (mode == "watermark")
+    {
+        <div class="row">
+            <label>Watermark text <input id="pdf-text" type="text" value="DRAFT" maxlength="80"></label>
+            <label>Opacity (%) <input id="pdf-opacity" type="number" min="5" max="100" step="1" value="25"></label>
+        </div>
+    }
+    <button id="pdf-submit" type="submit">@(mode == "slides" ? "Create PowerPoint" : "Create PDF")</button>
+    <button type="reset" class="secondary">Reset</button>
+</form>
+<div id="out" class="result" aria-live="polite"></div>
+<ul id="links"></ul>
+<p class="muted">Your files stay in your browser. @(mode == "slides" ? "Up to 20 pages and 30 MB." : "Up to 200 pages and 50 MB.")</p>
+<script src="~/js/pdf-workbench.js" asp-append-version="true" defer></script>

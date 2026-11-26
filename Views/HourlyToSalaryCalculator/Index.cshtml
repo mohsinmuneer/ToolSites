@@ -1,0 +1,29 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Are these amounts before tax?", "Yes. All amounts are gross pay before taxes and deductions."),
+        new("How many working hours are in a year?", "A standard full-time year is 40 hours x 52 weeks = 2,080 hours."),
+        new("Can I convert salary to hourly?", "Yes. Use the second box.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Hourly rate ($) <input id="hr" type="number" step="any" value="25" style="width:100px"></label><label>Hours per week <input id="hw" type="number" step="any" value="40" style="width:70px"></label><label>Weeks per year <input id="wk" type="number" step="any" value="52" style="width:70px"></label><button id="go" type="button">Convert to salary</button></div><div id="out" class="result" aria-live="polite"></div><div class="row"><label>Or yearly salary ($) <input id="sal" type="number" step="any" value="65000" style="width:120px"></label><button id="go2" type="button">Convert to hourly</button></div><div id="out2" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Hourly to Salary Calculator</h2>
+  <p>Type your hourly rate, the hours you work each week and the weeks you are paid per year, then press Convert. You get your gross yearly, monthly, biweekly, weekly and daily pay. The second box works backwards: enter a yearly salary to see the equivalent hourly rate.</p>
+  <h2>About this tool</h2>
+  <p>Annual pay = hourly rate x hours per week x weeks per year. A full-time job is usually 40 hours and 52 weeks, which makes the yearly figure about 2,080 times the hourly rate. All results are gross, meaning before taxes and deductions. If you get unpaid time off, enter fewer weeks to see a more realistic yearly total.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',()=>{const h=num('hr'),w=num('hw'),k=num('wk'); if(!(h>=0)||!(w>0)||!(k>0)) return fail('out','Enter an hourly rate, hours per week and weeks per year.');
+const a=h*w*k; show('out','Annual salary: '+money(a),['Monthly: '+money(a/12),'Biweekly: '+money(h*w*2),'Weekly: '+money(h*w),'Daily (5 days): '+money(h*w/5)]);});
+on('go2',()=>{const s=num('sal'),w=num('hw')||40,k=num('wk')||52; if(!(s>=0)) return fail('out2','Enter a yearly salary.'); show('out2','Hourly rate: '+money(s/(w*k)),['Based on '+w+' hours per week and '+k+' weeks per year']);});
+</script>

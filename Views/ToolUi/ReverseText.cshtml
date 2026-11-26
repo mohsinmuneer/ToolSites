@@ -1,0 +1,46 @@
+@model ToolDefinition
+<p>Paste some text and choose how you want to reverse it.</p>
+<form id="tool-inputs" class="batch-tool" novalidate>
+  <label for="source">Text to reverse</label>
+  <textarea id="source" rows="3" spellcheck="false">Hello world!</textarea>
+  <label for="operation">Reverse by</label>
+  <select id="operation"><option>Characters</option><option>Words</option></select>
+  <div class="row">
+    <button type="submit">Reverse text</button>
+    <button class="secondary" type="reset">Reset</button>
+  </div>
+</form>
+<p class="muted">Your input stays in your browser.</p>
+<div id="out" class="result" aria-live="polite"></div>
+<style>
+.batch-tool { display: grid; gap: 4px; }
+.batch-tool input, .batch-tool select, .batch-tool textarea { width: 100%; min-height: 44px; margin-bottom: 8px; }
+.batch-tool textarea { font: inherit; resize: vertical; }
+.batch-tool button { min-height: 44px; }
+#out { overflow-wrap: anywhere; white-space: pre-wrap; }
+#qr-preview canvas { max-width: 100%; height: auto; }
+</style>
+<script>
+function calculate() {
+  const text = $('source').value;
+  if (!text.trim()) throw new Error('Enter some text to reverse.');
+  if (text.length > 20000) throw new Error('Enter 20,000 characters or fewer.');
+  if ($('operation').value === 'Words') return [text.trim().split(/\s+/u).reverse().join(' ')];
+  if (typeof Intl.Segmenter !== 'function') throw new Error('Use a newer browser for character reversal, or choose Words.');
+  const characters = Array.from(new Intl.Segmenter().segment(text), item => item.segment);
+  return [characters.reverse().join('')];
+}
+
+$('tool-inputs').addEventListener('submit', event => {
+  event.preventDefault();
+  try {
+    show('out', calculate());
+  } catch (error) {
+    show('out', error.message, false);
+  }
+});
+
+$('tool-inputs').addEventListener('reset', () => {
+  $('out').textContent = '';
+  });
+</script>

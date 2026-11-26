@@ -1,0 +1,29 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("How is the monthly payment calculated?", "With the amortization formula using the monthly interest rate and the number of monthly payments."),
+        new("Does it include fees or insurance?", "No. It covers principal and interest only."),
+        new("Is this financial advice?", "No. It is an estimate for planning. Check actual terms with your lender.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Loan amount ($) <input id="amt" type="number" step="any" value="20000" style="width:120px"></label><label>Interest rate (% per year) <input id="rate" type="number" step="any" value="7.5" style="width:90px"></label><label>Term (years) <input id="yrs" type="number" step="any" value="5" style="width:70px"></label><button id="go" type="button">Calculate</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Loan Calculator</h2>
+  <p>Enter the amount you want to borrow, the yearly interest rate and the loan term in years. The calculator returns your estimated monthly payment, the total interest over the life of the loan and the total amount repaid.</p>
+  <h2>About this tool</h2>
+  <p>It uses the standard amortization formula: payment = P x i / (1 - (1 + i)^-n), where P is the amount, i is the monthly rate (annual rate divided by 12) and n is the number of monthly payments. Lenders may add fees, insurance or round differently, so treat the figure as an estimate and check your loan documents. A longer term lowers the payment but raises total interest.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',()=>{const P=num('amt'),r=num('rate'),y=num('yrs'); if(!(P>0)||!(y>0)||isNaN(r)||r<0) return fail('out','Enter a loan amount, a rate (0 or more) and a term above 0.');
+const n=Math.round(y*12), i=r/100/12; const m=i===0?P/n:P*i/(1-Math.pow(1+i,-n)); const total=m*n;
+show('out','Monthly payment: '+money(m),['Total interest: '+money(total-P),'Total paid: '+money(total),'Number of payments: '+n]);});
+</script>

@@ -1,0 +1,62 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Is the dice roller really random?", "Yes. It uses your browser's cryptographic random number generator and removes modulo bias, so every face of every die is equally likely."),
+        new("Which dice can I roll?", "You can roll 1 to 10 dice at once with 4, 6, 8, 10, 12, 20 or 100 sides."),
+        new("Can I use it for tabletop games?", "Yes. It works for D&D, board games and any game that needs d4, d6, d8, d10, d12, d20 or d100 rolls."),
+        new("Does it store my rolls?", "Only the last few rolls are shown on this page. Nothing is sent to a server."),
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+  <div class="row">
+    <label>Number of dice <input id="count" type="number" min="1" max="10" value="2"></label>
+    <label>Sides
+      <select id="sides">
+        <option>4</option><option selected>6</option><option>8</option><option>10</option><option>12</option><option>20</option><option>100</option>
+      </select>
+    </label>
+    <button id="roll" type="button">Roll</button>
+  </div>
+  <div id="dice" aria-live="polite"></div>
+  <div id="total" class="result"></div>
+  <h3>Recent rolls</h3>
+  <ol id="rolls" class="muted"></ol>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>Online dice roller</h2>
+  <p>Pick how many dice you want, choose the number of sides and press Roll. Each die is shown separately and the total is added up for you. The tool supports the standard tabletop set: d4, d6, d8, d10, d12, d20 and d100, and you can roll up to ten dice at a time.</p>
+  <h2>Fair results</h2>
+  <p>Rolls use the cryptographically secure random generator built into your browser. A simple technique called rejection sampling removes the small bias that appears when random numbers are squeezed into a range, so each face has exactly the same chance.</p>
+  <h2>When to use it</h2>
+  <p>Use it for role-playing games, board games, classroom probability lessons, or whenever you need a quick random number from 1 to the number of sides. For example, 2d6 gives a total from 2 to 12, with 7 the most common result.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+function rnd(n){
+  const lim = Math.floor(0x100000000 / n) * n, a = new Uint32Array(1);
+  do { crypto.getRandomValues(a); } while (a[0] >= lim);
+  return (a[0] % n) + 1;
+}
+const rolls = [];
+document.getElementById('roll').addEventListener('click', () => {
+  let c = parseInt(document.getElementById('count').value, 10);
+  if (!Number.isFinite(c) || c < 1) c = 1; if (c > 10) c = 10;
+  document.getElementById('count').value = c;
+  const s = parseInt(document.getElementById('sides').value, 10);
+  const res = Array.from({length: c}, () => rnd(s));
+  const total = res.reduce((x, y) => x + y, 0);
+  const box = document.getElementById('dice'); box.textContent = '';
+  res.forEach(v => { const d = document.createElement('span'); d.className = 'die'; d.textContent = v; box.appendChild(d); });
+  document.getElementById('total').textContent = 'Total: ' + total;
+  rolls.unshift(c + 'd' + s + ': ' + res.join(', ') + ' (total ' + total + ')');
+  if (rolls.length > 10) rolls.pop();
+  const ol = document.getElementById('rolls'); ol.textContent = '';
+  rolls.forEach(h => { const li = document.createElement('li'); li.textContent = h; ol.appendChild(li); });
+});
+</script>

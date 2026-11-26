@@ -1,0 +1,31 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("How is exact age calculated?", "The tool counts full years, then full months, then remaining days between the two dates."),
+        new("Can I find age on a future date?", "Yes. Change the \"Age at date\" field to any date after the birth date."),
+        new("Is my birth date stored?", "No. The calculation happens in your browser only.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Date of birth <input id="dob" type="date"></label><label>Age at date <input id="asof" type="date"></label><button id="go" type="button">Calculate</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Age Calculator</h2>
+  <p>Pick your date of birth and, if you like, a different "age at" date. Press Calculate to see your exact age in years, months and days, the total number of days you have lived and how many days remain until your next birthday.</p>
+  <h2>About this tool</h2>
+  <p>Age is counted by calendar: whole years first, then leftover months, then days. The calculator borrows days from the previous month when needed, so someone born on the 31st is handled correctly. Changing the "age at" date lets you work out age on a past or future day, such as a school cut-off date or an eligibility deadline.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+$('asof').value=todayStr();
+on('go',()=>{const a=parseDate('dob'),b=parseDate('asof'); if(!a||!b) return fail('out','Please choose both dates.'); if(a>b) return fail('out','The birth date must be before the other date.');
+const d=ymd(a,b), days=Math.round((b-a)/86400000); let nb=new Date(b.getFullYear(),a.getMonth(),a.getDate()); if(nb<b) nb=new Date(b.getFullYear()+1,a.getMonth(),a.getDate());
+const to=Math.round((nb-b)/86400000);
+show('out',d.y+' years, '+d.m+' months, '+d.d+' days',['Total days lived: '+fmtN(days,0)+' (about '+fmtN(days/7,0)+' weeks)','Next birthday in '+to+' days']);});
+</script>

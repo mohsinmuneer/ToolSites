@@ -1,0 +1,31 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("What does lorem ipsum mean?", "It is placeholder text derived from Latin and has no real meaning."),
+        new("Is each result different?", "Yes. The words are chosen randomly each time."),
+        new("Can I use it commercially?", "Yes. It is generic filler text with no copyright owner.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Paragraphs <input id="np" type="number" step="any" value="3" style="width:70px" min="1" max="20"></label><label>Words per paragraph <input id="nw" type="number" step="any" value="60" style="width:80px" min="5" max="200"></label><label><input id="st" type="checkbox" checked> Start with "Lorem ipsum"</label><button id="go" type="button">Generate</button><button id="cp" class="secondary" type="button">Copy</button></div><div id="res" style="white-space:pre-wrap;margin-top:10px"></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Lorem Ipsum Generator</h2>
+  <p>Choose how many paragraphs and how many words per paragraph you need, then press Generate. Tick the box to begin with the classic opening words. Press Copy to use the text in your design.</p>
+  <h2>About this tool</h2>
+  <p>Lorem ipsum is scrambled Latin text used as filler so designers and developers can judge layout, fonts and spacing without readable copy distracting from the design. The text here is assembled randomly from a standard word list, so each click gives a different result. Replace placeholder text with real content before publishing, because search engines and visitors expect meaningful pages.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+const W='lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit voluptate velit esse cillum fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum'.split(' ');
+function para(n,first){const w=[]; for(let k=0;k<n;k++){w.push(W[rndInt(W.length)]);} if(first){w.splice(0,2,'lorem','ipsum');} let s=w.join(' '); s=s.charAt(0).toUpperCase()+s.slice(1)+'.'; return s;}
+on('go',()=>{const p=Math.min(20,Math.max(1,Math.round(num('np')||1))), n=Math.min(200,Math.max(5,Math.round(num('nw')||60))); const a=[]; for(let k=0;k<p;k++){a.push(para(n,k===0&&$('st').checked));} $('res').textContent=a.join('\n\n');});
+on('cp',()=>copyText($('res').textContent).then(()=>show('out','Copied to clipboard.'),()=>fail('out','Could not copy.')));
+$('go').click();
+</script>

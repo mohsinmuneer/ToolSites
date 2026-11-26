@@ -1,0 +1,91 @@
+@model ToolDefinition
+@{
+    var libraries = Model.Libs ?? Array.Empty<string>();
+    var onDemand = Model.Opts?.ContainsKey("loadOnDemand") == true;
+    var nextSlug = Model.Slug switch
+    {
+        "split-pdf" => "merge-pdf",
+        "compress-pdf" => "split-pdf",
+        "gpa-calculator" => "grade-calculator",
+        "tip-calculator" or "discount-calculator" => "percentage-calculator",
+        "days-until-calculator" => "age-calculator",
+        "car-loan-calculator" or "mortgage-calculator" => "loan-calculator",
+        "hourly-to-salary-calculator" => "percentage-calculator",
+        "sales-tax-calculator" => "discount-calculator",
+        "pdf-to-jpg" => "split-pdf",
+        "png-to-jpg" or "webp-to-jpg" => "compress-image",
+        "jpg-to-png" or "heic-to-jpg" => "resize-image",
+        "case-converter" or "reverse-text" or "json-formatter" => "word-counter",
+        "base64-encoder" => "url-encoder-decoder",
+        "url-encoder-decoder" => "base64-encoder",
+        "cm-to-feet-inches" => "inches-to-cm",
+        "inches-to-cm" => "cm-to-feet-inches",
+        "pounds-to-kg" or "miles-to-km" or "fahrenheit-to-celsius" => "percentage-calculator",
+        "pdf-to-powerpoint" or "remove-pdf-pages" => "split-pdf",
+        "rotate-pdf" => "add-pdf-page-numbers",
+        "add-pdf-page-numbers" => "watermark-pdf",
+        "watermark-pdf" => "compress-pdf",
+        _ => null
+    };
+    var nextTool = nextSlug is not null && !ToolRegistry.IsHidden(nextSlug) ? ToolRegistry.Find(nextSlug) : null;
+}
+@foreach (var l in onDemand ? Array.Empty<string>() : libraries)
+{
+    <script src="/js/lib/@l"></script>
+}
+@if (nextSlug is not null)
+{
+    var baseUrl = (ViewData["Canonical"] as string)![..^(Model.Slug.Length + 1)];
+    var categoryId = Model.Category.ToLowerInvariant().Replace(' ', '-');
+    var schema = new object[]
+    {
+        new Dictionary<string, object>
+        {
+            ["@context"] = "https://schema.org",
+            ["@type"] = "BreadcrumbList",
+            ["itemListElement"] = new[]
+            {
+                new { position = 1, name = "Home", item = baseUrl + "/" },
+                new { position = 2, name = Model.Category, item = baseUrl + "/#" + categoryId },
+                new { position = 3, name = Model.H1, item = baseUrl + "/" + Model.Slug }
+            }.Select(item => new Dictionary<string, object?>
+            {
+                ["@type"] = "ListItem", ["position"] = item.position, ["name"] = item.name, ["item"] = item.item
+            })
+        },
+        new Dictionary<string, object>
+        {
+            ["@context"] = "https://schema.org",
+            ["@type"] = "WebApplication",
+            ["name"] = Model.H1,
+            ["description"] = Model.Description,
+            ["url"] = ViewData["Canonical"]!,
+            ["operatingSystem"] = "Any",
+            ["isAccessibleForFree"] = true,
+            ["offers"] = new Dictionary<string, object> { ["@type"] = "Offer", ["price"] = 0, ["priceCurrency"] = "USD" }
+        }
+    };
+    <nav aria-label="Breadcrumb" class="muted">
+        <a href="/">Home</a> / <a href="/#@categoryId">@Model.Category</a> / <span aria-current="page">@Model.H1</span>
+    </nav>
+    <script type="application/ld+json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(schema))</script>
+}
+<h1>@Model.H1</h1>
+<div class="card" id="tool-card" data-tool-libraries="@(onDemand ? string.Join(",", libraries) : "")">
+    <partial name="@("~/Views/ToolUi/" + Model.Ui + ".cshtml")" model="Model" />
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+    @if (nextSlug is not null)
+    {
+        <p class="muted">Last reviewed <time datetime="2026-11-26">November 26, 2026</time></p>
+    }
+    <partial name="_ToolContent" model="Model" />
+</div>
+@if (nextTool is not null)
+{
+    <p>Next step <a href="/@nextTool.Slug">@nextTool.H1</a></p>
+}
+<partial name="_RelatedTools" />

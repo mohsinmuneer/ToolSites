@@ -1,0 +1,13 @@
+@model ToolDefinition
+<textarea id="t" rows="10" style="width:100%" placeholder="Paste or type your text here"></textarea>
+<div id="out" class="result" aria-live="polite"></div>
+<script>
+function count() {
+  const t = $('t').value, words = (t.trim().match(/\S+/g) || []).length;
+  const sent = (t.match(/[^.!?]+[.!?]+(\s|$)/g) || []).length || (t.trim() ? 1 : 0);
+  const paras = t.split(/\n\s*\n/).filter(x => x.trim()).length;
+  show('out', [fix(words, 0) + ' words', 'Characters: ' + fix(t.length, 0) + ' (without spaces: ' + fix(t.replace(/\s/g, '').length, 0) + ')',
+    'Sentences: ' + sent + ' | Paragraphs: ' + paras + ' | Reading time: ' + (words === 0 ? '0' : Math.max(1, Math.round(words / 200))) + ' min']);
+}
+$('t').addEventListener('input', count); count();
+</script>

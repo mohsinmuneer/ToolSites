@@ -1,0 +1,38 @@
+@model ToolDefinition
+<p>Enter text to encode or standard Base64 to decode to UTF-8 text.</p>
+<label for="t">Text or Base64</label>
+<textarea id="t" class="text-editor code-editor" rows="4" spellcheck="false" placeholder="Enter text or Base64">A</textarea>
+<div class="row">
+  <button id="enc" type="button">Encode</button>
+  <button id="dec" type="button" class="secondary">Decode</button>
+  <button id="copy" type="button" class="secondary">Copy</button>
+</div>
+<div id="out" class="result" aria-live="polite"></div>
+<p class="muted">Your input stays in your browser.</p>
+<script>
+$('enc').onclick = () => {
+  const input = $('t').value;
+  if (!input.length || input.length > 100000) { show('out', 'Enter between 1 and 100,000 characters to encode.', false); return; }
+  const bytes = new TextEncoder().encode(input);
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += 8192) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
+  }
+  $('t').value = btoa(binary);
+  show('out', 'Encoded.', false);
+};
+$('dec').onclick = () => {
+  const input = $('t').value;
+  if (input.length > 500000) { show('out', 'Enter no more than 500,000 characters to decode.', false); return; }
+  const encoded = input.replace(/\s/g, '');
+  if (!encoded) { show('out', 'Enter Base64 to decode.', false); return; }
+  try {
+    const bytes = Uint8Array.from(atob(encoded), character => character.charCodeAt(0));
+    $('t').value = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
+    show('out', 'Decoded.', false);
+  } catch {
+    show('out', 'Enter valid standard Base64 containing UTF-8 text.', false);
+  }
+};
+$('copy').onclick = () => copyFromEditor('t', 'out');
+</script>

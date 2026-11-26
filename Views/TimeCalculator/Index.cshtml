@@ -1,0 +1,61 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("How do I add hours and minutes together?", "Enter the first time in Time A, choose Add, enter the second time in Time B and press Calculate. Minutes above 59 roll over into hours automatically."),
+        new("Can I subtract one time from another?", "Yes. Choose Subtract to find the difference. If Time B is larger than Time A the result is shown with a minus sign."),
+        new("Does it work with days as well as hours?", "Yes. You can use days, hours, minutes and seconds in any combination, and the result is shown in all of those units."),
+        new("Is my data sent anywhere?", "No. The calculation runs in your browser and nothing you type is uploaded."),
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+  <div class="row"><strong>Time A</strong>
+    <label>Days <input id="ad" type="number" min="0" value="0"></label>
+    <label>Hours <input id="ah" type="number" min="0" value="0"></label>
+    <label>Minutes <input id="am" type="number" min="0" value="0"></label>
+    <label>Seconds <input id="as" type="number" min="0" value="0"></label>
+  </div>
+  <div class="row"><label>Operation
+    <select id="op"><option value="add">Add (+)</option><option value="sub">Subtract (-)</option></select></label>
+  </div>
+  <div class="row"><strong>Time B</strong>
+    <label>Days <input id="bd" type="number" min="0" value="0"></label>
+    <label>Hours <input id="bh" type="number" min="0" value="0"></label>
+    <label>Minutes <input id="bm" type="number" min="0" value="0"></label>
+    <label>Seconds <input id="bs" type="number" min="0" value="0"></label>
+  </div>
+  <button id="calc">Calculate</button>
+  <div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the time calculator</h2>
+  <p>This free time calculator adds or subtracts two durations made of days, hours, minutes and seconds. Type the first duration into Time A, pick Add or Subtract, type the second duration into Time B and press Calculate. The answer appears straight away, broken down into days, hours, minutes and seconds, plus the same total expressed in single units.</p>
+  <h2>Common uses</h2>
+  <p>People use it to total work shifts, add up the length of videos or songs, work out how long a project took, plan travel legs, or check how much time is left on a task. Because every unit rolls over correctly (60 seconds make a minute, 60 minutes make an hour, 24 hours make a day) you do not need to convert anything by hand.</p>
+  <h2>Tips</h2>
+  <p>To total several durations, calculate two at a time and copy the result into Time A for the next step. To find the gap between two clock times, convert each to hours and minutes and subtract. This tool measures durations, not calendar dates, so it ignores time zones and daylight saving changes.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+function val(id){ const v = parseInt(document.getElementById(id).value, 10); return Number.isFinite(v) ? v : 0; }
+function secs(p){ return val(p+'d')*86400 + val(p+'h')*3600 + val(p+'m')*60 + val(p+'s'); }
+document.getElementById('calc').addEventListener('click', () => {
+  const a = secs('a'), b = secs('b');
+  let t = document.getElementById('op').value === 'add' ? a + b : a - b;
+  const neg = t < 0; t = Math.abs(t);
+  const d = Math.floor(t/86400), h = Math.floor(t%86400/3600), m = Math.floor(t%3600/60), s = t%60;
+  const sign = neg ? '-' : '';
+  const out = document.getElementById('out');
+  out.textContent = '';
+  const p1 = document.createElement('p'); p1.style.fontWeight = '700';
+  p1.textContent = sign + d + ' days, ' + h + ' hours, ' + m + ' minutes, ' + s + ' seconds';
+  const p2 = document.createElement('p'); p2.className = 'muted';
+  p2.textContent = 'Total: ' + sign + (t/3600).toFixed(2) + ' hours = ' + sign + (t/60).toFixed(1) + ' minutes = ' + sign + t + ' seconds';
+  out.append(p1, p2);
+});
+</script>

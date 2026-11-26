@@ -1,0 +1,50 @@
+@model ToolDefinition
+@{ var mode = Model.Opts != null && Model.Opts.TryGetValue("mode", out var mm) ? mm : "loan"; }
+<p>Enter the price, down payment, annual interest rate and term to estimate fixed monthly payments.</p>
+<div class="row">
+  <label>@(mode == "mortgage" ? "Home price ($)" : mode == "car" ? "Vehicle price ($)" : "Loan amount ($)") <input id="price" type="number" min="0" step="any" value="@(mode == "mortgage" ? 400000 : mode == "car" ? 30000 : 20000)"></label>
+  @if (mode != "loan") { <label>Down payment ($) <input id="down" type="number" min="0" step="any" value="@(mode == "mortgage" ? 80000 : 3000)"></label> }
+  @if (mode == "car") { <label>Net trade-in credit ($) <input id="trade" type="number" min="0" step="any" value="0"></label> }
+</div>
+<div class="row">
+  <label>Annual interest rate (%) <input id="apr" type="number" min="0" step="any" value="@(mode == "mortgage" ? 6.5 : 7)"></label>
+  <label>Term (@(mode == "car" ? "months" : "years")) <input id="term" type="number" min="1" step="1" value="@(mode == "car" ? 60 : mode == "mortgage" ? 30 : 5)"></label>
+</div>
+@if (mode == "mortgage")
+{
+  <div class="row"><label>Property tax ($/year) <input id="ptax" type="number" min="0" step="any" value="4000"></label>
+  <label>Home insurance ($/year) <input id="ins" type="number" min="0" step="any" value="1500"></label></div>
+}
+<button id="go" type="button">Calculate</button>
+<div id="out" class="result" aria-live="polite"></div>
+<p class="muted">Example rates are for illustration. Check the current figure with your lender. Your input stays in your browser.</p>
+<script>
+const MODE = '@mode';
+$('go').onclick = () => {
+  const ids = ['price', 'apr', 'term'];
+  if (MODE !== 'loan') ids.push('down');
+  if (MODE === 'car') ids.push('trade');
+  if (MODE === 'mortgage') ids.push('ptax', 'ins');
+  const input = Object.fromEntries(ids.map(id => [id, $(id).valueAsNumber]));
+  if (ids.some(id => !$(id).validity.valid || !Number.isFinite(input[id]))) {
+    show('out', 'Enter a nonnegative amount for each field and a positive whole-number term.', false);
+    return;
+  }
+  const P = input.price - (input.down ?? 0) - (input.trade ?? 0);
+  const n = input.term * (MODE === 'car' ? 1 : 12), r = input.apr / 1200;
+  if (P <= 0 || !Number.isSafeInteger(n)) {
+    show('out', 'Enter an amount financed above zero and a valid loan term.', false);
+    return;
+  }
+  const pay = r === 0 ? P / n : P * (r / -Math.expm1(-n * Math.log1p(r)));
+  const total = pay * n;
+  const extras = ((input.ptax ?? 0) + (input.ins ?? 0)) / 12;
+  if (!Number.isFinite(total) || !Number.isFinite(pay + extras)) {
+    show('out', 'These figures are too large. Check your amounts and term.', false);
+    return;
+  }
+  const lines = ['Monthly payment: ' + usd(pay), 'Amount financed: ' + usd(P), 'Total interest: ' + usd(total - P), 'Total repaid: ' + usd(total)];
+  if (MODE === 'mortgage') { const ex = extras; lines[0] = 'Estimated monthly total: ' + usd(pay + ex); lines.push('Principal and interest: ' + usd(pay) + ' + taxes and insurance: ' + usd(ex) + ' (PMI, HOA not included)'); }
+  show('out', lines);
+};
+</script>

@@ -1,0 +1,51 @@
+@model ToolDefinition
+<p>Choose a PDF and resolution, then download one JPG per converted page.</p>
+<div class="row">
+  <label>PDF file <input id="f" type="file" accept=".pdf,application/pdf"></label>
+  <label>Resolution <select id="q"><option value="1.5">Standard</option><option value="2.5">High</option></select></label>
+</div>
+<button id="go" type="button">Convert to JPG</button>
+<div id="out" class="result" aria-live="polite"></div><ul id="links"></ul>
+<p class="muted">Your files stay in your browser. Up to the first 30 pages of a PDF under 100 MB.</p>
+<script>
+$('go').onclick = async () => {
+  const file = $('f').files[0];
+  if (!file) { show('out', 'Choose a PDF first.', false); return; }
+  if (file.size > 100 * 1048576) { show('out', 'Choose a PDF of 100 MB or less.', false); return; }
+  const scale = Number($('q').value);
+  clearDownloadLinks('links');
+  $('go').disabled = true;
+  show('out', 'Opening PDF...', false);
+  let task;
+  try {
+    await loadToolLibraries();
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/lib/pdf.worker.min.js';
+    task = pdfjsLib.getDocument({ data: await readBytes(file), isEvalSupported: false });
+    const pdf = await task.promise, count = Math.min(pdf.numPages, 30);
+    for (let i = 1; i <= count; i++) {
+      show('out', 'Converting page ' + i + ' of ' + count + '...', false);
+      const page = await pdf.getPage(i), viewport = page.getViewport({ scale });
+      if (!fitsCanvas(viewport.width, viewport.height)) {
+        show('out', 'Page ' + i + ' is too large at this resolution. Try Standard or convert a smaller page. Any completed images are listed below.', false);
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(viewport.width);
+      canvas.height = Math.round(viewport.height);
+      const context = canvas.getContext('2d');
+      await page.render({ canvasContext: context, viewport, background: '#fff' }).promise;
+      const image = await canvasBlob(canvas, 'image/jpeg', 0.9);
+      canvas.width = canvas.height = 0;
+      page.cleanup();
+      if (!image || image.type !== 'image/jpeg') throw new Error('Could not create the JPEG.');
+      addLink('links', image, 'page-' + i + '.jpg');
+    }
+    show('out', count + ' pages converted' + (pdf.numPages > count ? ' (first ' + count + ' of ' + pdf.numPages + ')' : '') + '. Download the images below.', false);
+  } catch {
+    show('out', 'Could not convert this PDF. Make sure the file opens without a password and try again. Any completed images are listed below.', false);
+  } finally {
+    $('go').disabled = false;
+    if (task) await task.destroy().catch(() => {});
+  }
+};
+</script>

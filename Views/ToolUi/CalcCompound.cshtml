@@ -1,0 +1,21 @@
+@model ToolDefinition
+<div class="row"><label>Starting balance ($) <input id="p" type="number" min="0" step="any" value="5000"></label>
+<label>Monthly deposit ($) <input id="m" type="number" min="0" step="any" value="200"></label></div>
+<div class="row"><label>Annual rate (%) <input id="r" type="number" min="0" step="any" value="6"></label>
+<label>Years <input id="y" type="number" min="1" max="80" step="1" value="20"></label>
+<label>Compounded <select id="n"><option value="12">Monthly</option><option value="365">Daily</option><option value="4">Quarterly</option><option value="1">Yearly</option></select></label></div>
+<button id="go" type="button">Calculate</button>
+<div id="out" class="result" aria-live="polite"></div>
+<table id="tbl" hidden><thead><tr><th>Year</th><th>Balance</th></tr></thead><tbody></tbody></table>
+<script>
+$('go').onclick = () => {
+  const p = num('p'), m = num('m'), r = num('r') / 100, yrs = Math.min(80, Math.max(1, Math.round(num('y')))), n = parseInt($('n').value, 10);
+  const mr = Math.pow(1 + r / n, n / 12) - 1; let bal = p; const tb = document.querySelector('#tbl tbody'); tb.textContent = '';
+  for (let mo = 1; mo <= yrs * 12; mo++) {
+    bal = bal * (1 + mr) + m;
+    if (mo % 12 === 0) { const tr = document.createElement('tr'); [mo / 12, usd(bal)].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); }); tb.appendChild(tr); }
+  }
+  const dep = p + m * yrs * 12; $('tbl').hidden = false;
+  show('out', ['Final balance: ' + usd(bal), 'Total deposits: ' + usd(dep), 'Interest earned: ' + usd(bal - dep)]);
+};
+</script>

@@ -1,0 +1,33 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("What is camelCase?", "A style where words are joined and each word after the first starts with a capital letter, like myVariableName."),
+        new("Does it keep punctuation?", "UPPER, lower, Title and Sentence case keep it. The programming styles remove it."),
+        new("Can I undo a conversion?", "Not automatically, so keep a copy of the original if you need it.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<textarea id="t" rows="7" style="width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px" placeholder="Type or paste your text here"></textarea><div class="row"><button class="secondary" data-c="up">UPPER CASE</button><button class="secondary" data-c="low">lower case</button><button class="secondary" data-c="title">Title Case</button><button class="secondary" data-c="sent">Sentence case</button><button class="secondary" data-c="camel">camelCase</button><button class="secondary" data-c="snake">snake_case</button><button class="secondary" data-c="kebab">kebab-case</button><button id="cp" type="button">Copy</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Case Converter</h2>
+  <p>Paste your text, then click the case you want. The text in the box is converted right away. Use Copy to put the result on your clipboard.</p>
+  <h2>About this tool</h2>
+  <p>UPPER and lower case change every letter. Title Case capitalizes the first letter of each word, and Sentence case capitalizes the first letter of each sentence. camelCase, snake_case and kebab-case are naming styles used in programming: they remove punctuation and join the words, which is handy for variable names, file names and URL slugs. Note that Title Case here capitalizes every word, including small words such as "of" or "the".</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+const words=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(Boolean);
+const cap=w=>w.charAt(0).toUpperCase()+w.slice(1);
+const fns={up:s=>s.toUpperCase(),low:s=>s.toLowerCase(),title:s=>s.toLowerCase().replace(/(^|\s)(\S)/g,(m,a,b)=>a+b.toUpperCase()),
+sent:s=>s.toLowerCase().replace(/(^\s*|[.!?]\s+)([a-z])/g,(m,a,b)=>a+b.toUpperCase()),
+camel:s=>{const w=words(s); return w.length?w[0]+w.slice(1).map(cap).join(''):'';},snake:s=>words(s).join('_'),kebab:s=>words(s).join('-')};
+document.querySelectorAll('button[data-c]').forEach(b=>b.addEventListener('click',()=>{$('t').value=fns[b.dataset.c]($('t').value);}));
+on('cp',()=>copyText($('t').value).then(()=>show('out','Copied to clipboard.'),()=>fail('out','Could not copy. Select the text and copy it manually.')));
+</script>

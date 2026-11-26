@@ -1,0 +1,28 @@
+@model ToolDefinition
+<p>Enter the applicable rate, then add tax to a price or find the pretax amount.</p>
+<div class="row"><label>Sales tax rate (%) <input id="rate" type="number" min="0" step="any" value="7.25"></label></div>
+<h3>Add tax to a price</h3>
+<div class="row"><label>Price before tax ($) <input id="pre" type="number" min="0" step="any" value="100"></label><button id="g1" type="button">Add tax</button></div>
+<div id="o1" class="result" aria-live="polite"></div>
+<h3>Remove tax from a total</h3>
+<div class="row"><label>Total with tax ($) <input id="tot" type="number" min="0" step="any" value="107.25"></label><button id="g2" type="button">Find price before tax</button></div>
+<div id="o2" class="result" aria-live="polite"></div>
+<p class="muted">7.25% is an example. Check the current figure for your purchase. Your input stays in your browser.</p>
+<script>
+function calculateTax(reverse) {
+  const out = reverse ? 'o2' : 'o1';
+  const amount = $(reverse ? 'tot' : 'pre').valueAsNumber;
+  const rate = $('rate').valueAsNumber / 100;
+  const total = reverse ? amount : amount * (1 + rate);
+  if (!Number.isFinite(amount) || amount < 0 || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(total)) {
+    show(out, 'Enter a valid price and tax rate of zero or more.', false);
+    return;
+  }
+  const price = reverse ? amount / (1 + rate) : amount;
+  const tax = total - price;
+  show(out, reverse ? ['Price before tax: ' + usd(price), 'Tax included: ' + usd(tax)]
+    : ['Tax: ' + usd(tax), 'Total: ' + usd(total)]);
+}
+$('g1').onclick = () => calculateTax(false);
+$('g2').onclick = () => calculateTax(true);
+</script>

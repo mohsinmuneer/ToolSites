@@ -1,0 +1,25 @@
+@model ToolDefinition
+<div class="row"><input id="f" type="file" accept="image/*"></div>
+<div class="row"><label>Width (px) <input id="w" type="number" min="1" step="1"></label><label>Height (px) <input id="h" type="number" min="1" step="1"></label>
+<label><input id="lock" type="checkbox" checked> Keep aspect ratio</label>
+<label>Format <select id="fmt"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option></select></label></div>
+<button id="go" type="button">Resize</button>
+<div id="out" class="result" aria-live="polite"></div><ul id="links"></ul>
+<script>
+let img = null, ratio = 1;
+$('f').onchange = async () => { const file = $('f').files[0]; if (!file) return;
+  try { img = await loadImage(file); ratio = img.naturalWidth / img.naturalHeight; $('w').value = img.naturalWidth; $('h').value = img.naturalHeight; show('out', 'Original: ' + img.naturalWidth + ' x ' + img.naturalHeight + ' px', false); }
+  catch (e) { show('out', e.message, false); } };
+$('w').oninput = () => { if ($('lock').checked && img) $('h').value = Math.max(1, Math.round(num('w') / ratio)); };
+$('h').oninput = () => { if ($('lock').checked && img) $('w').value = Math.max(1, Math.round(num('h') * ratio)); };
+$('go').onclick = async () => {
+  if (!img) { show('out', 'Choose an image first.', false); return; }
+  const w = Math.round(num('w')), h = Math.round(num('h')); if (w < 1 || h < 1 || w > 8000 || h > 8000) { show('out', 'Width and height must be between 1 and 8000.', false); return; }
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
+  if ($('fmt').value === 'image/jpeg') { g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); }
+  g.drawImage(img, 0, 0, w, h);
+  const b = await canvasBlob(c, $('fmt').value, 0.92); $('links').textContent = '';
+  show('out', 'Resized to ' + w + ' x ' + h + ' px', false);
+  addLink('links', b, 'resized-' + w + 'x' + h + ($('fmt').value === 'image/png' ? '.png' : '.jpg'), 'Download resized image');
+};
+</script>

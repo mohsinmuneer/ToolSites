@@ -1,0 +1,50 @@
+@model ToolDefinition
+<p>Set the minimum and maximum whole numbers, then generate a result.</p>
+<form id="tool-inputs" class="batch-tool" novalidate>
+  <label for="low">Minimum (inclusive)</label>
+  <input id="low" type="number" value="1" min="-2147483648" max="2147483647" step="1" required>
+  <label for="high">Maximum (inclusive)</label>
+  <input id="high" type="number" value="100" min="-2147483648" max="2147483647" step="1" required>
+  <div class="row">
+    <button type="submit">Generate</button>
+    <button class="secondary" type="reset">Reset</button>
+  </div>
+</form>
+<p class="muted">Your input stays in your browser.</p>
+<div id="out" class="result" aria-live="polite"></div>
+<style>
+.batch-tool { display: grid; gap: 4px; }
+.batch-tool input, .batch-tool select, .batch-tool textarea { width: 100%; min-height: 44px; margin-bottom: 8px; }
+.batch-tool textarea { font: inherit; resize: vertical; }
+.batch-tool button { min-height: 44px; }
+#out { overflow-wrap: anywhere; }
+#qr-preview canvas { max-width: 100%; height: auto; }
+</style>
+<script>
+function readNumber(id) {
+  const field = $(id);
+  if (!field.validity.valid || !Number.isFinite(field.valueAsNumber)) {
+    throw new Error('Enter a valid value for ' + field.labels[0].textContent.toLowerCase() + '.');
+  }
+  return field.valueAsNumber;
+}
+
+function calculate() {
+  const low = readNumber('low'), high = readNumber('high');
+  if (high < low) throw new Error('Set the maximum at or above the minimum.');
+  return [String(low + randInt(high - low + 1))];
+}
+
+$('tool-inputs').addEventListener('submit', event => {
+  event.preventDefault();
+  try {
+    show('out', calculate());
+  } catch (error) {
+    show('out', error.message, false);
+  }
+});
+
+$('tool-inputs').addEventListener('reset', () => {
+  $('out').textContent = '';
+  });
+</script>

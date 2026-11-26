@@ -1,0 +1,71 @@
+@model List<ToolDefinition>
+@{
+    ViewData["MainClass"] = "directory-main";
+    var categories = new[] { "PDF Tools", "Image Tools", "Calculators", "Finance", "Converters", "Text Tools", "Games" };
+    var pdfOrder = new[]
+    {
+        "merge-pdf", "split-pdf", "compress-pdf", "pdf-to-powerpoint", "pdf-to-jpg",
+        "jpg-to-pdf", "rotate-pdf", "remove-pdf-pages", "add-pdf-page-numbers", "watermark-pdf"
+    };
+    var pdfSummaries = new Dictionary<string, string>
+    {
+        ["merge-pdf"] = "Combine several PDFs in the order you choose.",
+        ["split-pdf"] = "Extract selected pages or save each page separately.",
+        ["compress-pdf"] = "Reduce the size of a scanned PDF.",
+        ["pdf-to-jpg"] = "Save each PDF page as a JPEG image.",
+        ["jpg-to-pdf"] = "Combine JPG or PNG images in one PDF.",
+        ["pdf-to-powerpoint"] = "Make a PowerPoint image slide from each PDF page.",
+        ["rotate-pdf"] = "Turn sideways or upside-down pages upright.",
+        ["remove-pdf-pages"] = "Remove unwanted pages and keep the rest in order.",
+        ["add-pdf-page-numbers"] = "Add page numbers and skip the cover if needed.",
+        ["watermark-pdf"] = "Stamp selected pages with a text label."
+    };
+    var groups = Model.GroupBy(tool => tool.Category)
+        .OrderBy(group => Array.IndexOf(categories, group.Key) is var rank && rank >= 0 ? rank : categories.Length)
+        .ToArray();
+}
+<section class="tool-hero" aria-labelledby="directory-title">
+    <h1 id="directory-title">PDF and <span>everyday tools</span></h1>
+    <p>Merge PDFs, resize images or make a quick calculation.</p>
+    <div class="directory-search">
+        <span aria-hidden="true" class="search-mark"></span>
+        <input id="tool-search" type="search" aria-label="Search tools" placeholder="Search tools, e.g. Merge PDF" autocomplete="off">
+    </div>
+</section>
+
+<div class="tool-filters" role="group" aria-label="Filter tools by category">
+    <button type="button" data-category="" aria-pressed="true">All tools</button>
+    @foreach (var group in groups)
+    {
+        <button type="button" data-category="@group.Key" aria-pressed="false">@group.Key</button>
+    }
+</div>
+<p id="tool-count" class="muted" role="status">@Model.Count tools</p>
+
+@foreach (var group in groups)
+{
+    var pdf = group.Key == "PDF Tools";
+    var tools = pdf ? group.OrderBy(tool => Array.IndexOf(pdfOrder, tool.Slug) is var rank && rank >= 0 ? rank : pdfOrder.Length) : group.AsEnumerable();
+    <section class="tool-group" id="@group.Key.ToLowerInvariant().Replace(' ', '-')" data-tool-group="@group.Key">
+        <h2>@group.Key</h2>
+        <div class="grid">
+            @foreach (var tool in tools)
+            {
+                <a class="directory-card" href="/@tool.Slug" data-tool-card>
+                    <span class="card-top" aria-hidden="true">
+                        <span class="card-mark"><partial name="_DirectoryIcon" model="tool" /></span>
+                        <svg class="card-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 12h12m-5-5 5 5-5 5" />
+                        </svg>
+                    </span>
+                    <strong>@tool.H1</strong>
+                    <span class="card-summary">@pdfSummaries.GetValueOrDefault(tool.Slug, tool.Description)</span>
+                </a>
+            }
+        </div>
+    </section>
+}
+<p id="tool-empty" hidden>No tools match. Try a different search or category.</p>
+@section Scripts {
+    <script src="~/js/directory.js" asp-append-version="true" defer></script>
+}

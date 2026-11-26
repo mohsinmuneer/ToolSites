@@ -1,0 +1,42 @@
+@model ToolDefinition
+<p>Choose a PDF and a quality setting, then select Compress PDF.</p>
+<div class="row"><label>PDF to compress <input id="f" type="file" accept="application/pdf"></label>
+<label>Quality <select id="q"><option value="1,0.5">Smallest file</option><option value="1.4,0.65" selected>Balanced</option><option value="2,0.8">Best quality</option></select></label></div>
+<button id="go" type="button">Compress PDF</button>
+<div id="out" class="result" aria-live="polite"></div><ul id="links"></ul>
+<p class="muted">Pages are re-saved as images, so text will not be selectable. Max 40 pages and 100 MB.</p>
+<p class="muted">Your files stay in your browser.</p>
+<script>
+
+$('go').onclick = async () => {
+  const file = $('f').files[0]; if (!file) { show('out', 'Choose a PDF first.', false); return; }
+  if (file.size > 100 * 1048576) { show('out', 'File is over 100 MB.', false); return; }
+  $('links').textContent = ''; const [scale, qual] = $('q').value.split(',').map(Number);
+  $('go').disabled = true;
+  show('out', 'Opening PDF...', false);
+  try {
+    await loadToolLibraries();
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/lib/pdf.worker.min.js';
+    const pdf = await pdfjsLib.getDocument({ data: await readBytes(file), isEvalSupported: false }).promise;
+    if (pdf.numPages > 40) { show('out', 'This PDF has ' + pdf.numPages + ' pages. The limit is 40.', false); return; }
+    const out = await PDFLib.PDFDocument.create();
+    for (let i = 1; i <= pdf.numPages; i++) {
+      show('out', 'Compressing page ' + i + ' of ' + pdf.numPages + '...', false);
+      const page = await pdf.getPage(i), pt = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale }), c = document.createElement('canvas');
+      if (vp.width > 8192 || vp.height > 8192 || vp.width * vp.height > 16000000) {
+        show('out', 'A page is too large to render with this setting. Try Smallest file or use a smaller scan.', false);
+        return;
+      }
+      c.width = Math.round(vp.width); c.height = Math.round(vp.height); const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+      await page.render({ canvasContext: g, viewport: vp }).promise;
+      const jpg = await out.embedJpg(await (await canvasBlob(c, 'image/jpeg', qual)).arrayBuffer());
+      out.addPage([pt.width, pt.height]).drawImage(jpg, { x: 0, y: 0, width: pt.width, height: pt.height });
+    }
+    const bytes = await out.save(), blob = new Blob([bytes], { type: 'application/pdf' });
+    if (blob.size >= file.size) { show('out', ['No gain: the result (' + kb(blob.size) + ') is not smaller than the original (' + kb(file.size) + ').', 'Keep your original file, or try the Smallest setting.']); return; }
+    show('out', 'Done: ' + kb(file.size) + ' to ' + kb(blob.size) + ' (' + Math.round(100 - blob.size / file.size * 100) + '% smaller)', false);
+    addLink('links', blob, file.name.replace(/\.pdf$/i, '') + '-compressed.pdf', 'Download compressed PDF');
+  } catch (e) { show('out', 'Could not process this PDF. It may be damaged or password-protected, or the PDF tools may have failed to load.', false); }
+  finally { $('go').disabled = false; }
+};
+</script>

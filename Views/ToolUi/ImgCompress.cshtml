@@ -1,0 +1,23 @@
+@model ToolDefinition
+<div class="row"><input id="f" type="file" accept="image/jpeg,image/png,image/webp"><label>Target size (KB) <input id="kb" type="number" min="5" step="1" value="100"></label></div>
+<button id="go" type="button">Compress</button>
+<div id="out" class="result" aria-live="polite"></div><ul id="links"></ul>
+<script>
+$('go').onclick = async () => {
+  const file = $('f').files[0]; if (!file) { show('out', 'Choose an image first.', false); return; }
+  $('links').textContent = ''; show('out', 'Compressing...', false);
+  try {
+    const img = await loadImage(file), target = Math.max(5, num('kb')) * 1024; let scale = 1, best = null;
+    for (let round = 0; round < 8 && !best; round++) {
+      const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.naturalWidth * scale)); c.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+      let lo = 0.1, hi = 0.95, fit = null;
+      for (let i = 0; i < 7; i++) { const q = (lo + hi) / 2, b = await canvasBlob(c, 'image/jpeg', q); if (b.size <= target) { fit = b; lo = q; } else hi = q; }
+      if (fit) best = fit; else scale *= 0.8;
+    }
+    if (!best) { show('out', 'Could not reach that size. Try a larger target.', false); return; }
+    show('out', ['Done: ' + kb(file.size) + ' to ' + kb(best.size), 'Saved as JPEG.']);
+    addLink('links', best, file.name.replace(/\.[^.]+$/, '') + '-compressed.jpg', 'Download compressed image');
+  } catch (e) { show('out', e.message, false); }
+};
+</script>

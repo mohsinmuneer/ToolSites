@@ -1,0 +1,39 @@
+@model ToolDefinition
+<p>Choose HEIC or HEIF photos, then download one still JPG per file.</p>
+<div class="row"><label>HEIC or HEIF photos <input id="f" type="file" accept=".heic,.heif,image/heic,image/heif" multiple></label></div>
+<button id="go" type="button">Convert to JPG</button>
+<div id="out" class="result" aria-live="polite"></div><ul id="links"></ul>
+<p class="muted">Your files stay in your browser. Up to 10 files, 20 MB each.</p>
+<script>
+$('go').onclick = async () => {
+  const files = [...$('f').files];
+  if (!files.length) { show('out', 'Choose at least one HEIC file.', false); return; }
+  if (files.length > 10) { show('out', 'Choose up to 10 files at a time.', false); return; }
+  if (files.every(file => file.size > 20 * 1048576)) { show('out', 'Choose a file of 20 MB or less.', false); return; }
+  clearDownloadLinks('links');
+  $('go').disabled = true;
+  show('out', 'Starting the photo converter...', false);
+  let converted = 0;
+  try {
+    await loadToolLibraries();
+    for (const [index, file] of files.entries()) {
+      show('out', 'Converting photo ' + (index + 1) + ' of ' + files.length + '...', false);
+      if (file.size > 20 * 1048576) { showFileError(file.name, 'Choose a file of 20 MB or less.'); continue; }
+      try {
+        const output = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+        const image = Array.isArray(output) ? output[0] : output;
+        if (!image || image.type !== 'image/jpeg') throw new Error('Expected a JPEG output.');
+        addLink('links', image, file.name.replace(/\.[^.]+$/, '') + '.jpg');
+        converted++;
+      } catch {
+        showFileError(file.name, 'Could not decode this photo. Try exporting the original photo again.');
+      }
+    }
+    show('out', converted + ' of ' + files.length + ' converted. ' + (converted ? 'Download the photos below.' : 'Check the file messages below.'), false);
+  } catch {
+    show('out', 'Could not load the photo converter. Please try again.', false);
+  } finally {
+    $('go').disabled = false;
+  }
+};
+</script>

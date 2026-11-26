@@ -1,0 +1,29 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("How do I remove sales tax from a total?", "Divide the total by 1 plus the tax rate as a decimal. For 8%, divide by 1.08."),
+        new("Which tax rate should I use?", "Use the combined state and local rate where the sale happens."),
+        new("Are some items tax exempt?", "Often yes, such as certain groceries or clothing, depending on the state.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Amount ($) <input id="amt" type="number" step="any" value="100" style="width:110px"></label><label>Tax rate (%) <input id="rt" type="number" step="any" value="8" style="width:70px"></label><label>Mode <select id="mode"><option value="add" selected>Add tax to price</option><option value="rem">Remove tax from total</option></select></label><button id="go" type="button">Calculate</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Sales Tax Calculator</h2>
+  <p>Enter an amount and the sales tax rate. Choose "Add tax to price" when you know the pre-tax price and want the total, or "Remove tax from total" when the receipt shows a tax-inclusive amount and you want the pre-tax price and the tax paid.</p>
+  <h2>About this tool</h2>
+  <p>Adding tax: total = price x (1 + rate / 100). Removing tax: price = total / (1 + rate / 100). Remember that the second formula divides by the rate factor; subtracting the percentage from the total gives a slightly wrong answer. US sales tax rates differ by state, county and city, and some items are exempt, so check the rate that applies to your purchase.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',()=>{const a=num('amt'),r=num('rt'); if(!(a>=0)||!(r>=0)) return fail('out','Enter an amount and a tax rate of 0 or more.');
+if($('mode').value==='add'){const t=a*r/100; show('out','Total with tax: '+money(a+t),['Sales tax: '+money(t),'Price before tax: '+money(a)]);}
+else{const pre=a/(1+r/100); show('out','Price before tax: '+money(pre),['Sales tax included: '+money(a-pre),'Total: '+money(a)]);}});
+</script>

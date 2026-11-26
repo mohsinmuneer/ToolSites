@@ -1,0 +1,29 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Is Base64 encryption?", "No. It is just an encoding and can be reversed by anyone."),
+        new("Why does decoding fail?", "The text may contain characters that are not valid Base64, or missing padding."),
+        new("Does it support Unicode?", "Yes, through UTF-8.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<textarea id="t" rows="8" style="width:100%;font:13px/1.4 monospace;padding:10px;border:1px solid var(--line);border-radius:8px" placeholder="Type text to encode, or paste Base64 to decode"></textarea><div class="row"><button id="en" type="button">Encode</button><button id="de" class="secondary" type="button">Decode</button><button id="cp" class="secondary" type="button">Copy</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Base64 Encoder and Decoder</h2>
+  <p>Type or paste text and press Encode to get Base64. To reverse it, paste Base64 and press Decode. The tool handles accented letters, emoji and other Unicode characters correctly.</p>
+  <h2>About this tool</h2>
+  <p>Base64 represents binary data using 64 safe text characters, so it can travel through systems that only handle text, such as email or JSON. It makes data about one third larger and it is not encryption: anyone can decode it. Never use Base64 to hide passwords or secrets. This tool uses UTF-8, so non-English text round-trips correctly.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('en',()=>{const b=new TextEncoder().encode($('t').value); let s=''; b.forEach(x=>s+=String.fromCharCode(x)); $('t').value=btoa(s); show('out','Encoded');});
+on('de',()=>{try{const s=atob($('t').value.trim()); const b=Uint8Array.from(s,c=>c.charCodeAt(0)); $('t').value=new TextDecoder('utf-8',{fatal:true}).decode(b); show('out','Decoded');}catch(e){fail('out','This is not valid Base64 text.');}});
+on('cp',()=>copyText($('t').value).then(()=>show('out','Copied to clipboard.'),()=>fail('out','Could not copy.')));
+</script>

@@ -1,0 +1,30 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("How many grams is 1 tola?", "About 11.66 grams."),
+        new("How many tola are in 100 grams?", "About 8.57 tola."),
+        new("How many masha in a tola?", "12 masha, and each masha is 8 ratti.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Tola <input id="a" type="number" step="any" value="1" style="width:150px"></label>=<label>Grams <input id="b" type="number" step="any" value="" style="width:150px"></label></div><p class="muted">Type in either box. The other one updates instantly.</p><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Tola to Gram Converter</h2>
+  <p>Enter the gold or silver weight in tola to see grams, or enter grams to see tola. The note below also shows the equivalent in masha and ratti.</p>
+  <h2>About this tool</h2>
+  <p>In Pakistan and India, one tola is commonly taken as 11.6638 grams (this tool uses 11.6638038 g). One tola is 12 masha, and one masha is 8 ratti, so one tola is 96 ratti. Some jewellers round a tola to 11.66 g, so tiny differences can appear on a bill. Always compare with the weight on your jeweller receipt.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+pair('a','b',v=>v*11.6638038,v=>v/11.6638038);
+function mr(){const t=parseFloat($('a').value); if(!Number.isFinite(t)){$('out').textContent='';return;} show('out',fmtN(t*12,3)+' masha = '+fmtN(t*96,2)+' ratti',['1 tola = 12 masha = 96 ratti']);}
+$('a').addEventListener('input',mr); $('b').addEventListener('input',mr);
+$('a').dispatchEvent(new Event('input'));
+</script>

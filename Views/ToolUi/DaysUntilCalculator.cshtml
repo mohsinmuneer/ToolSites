@@ -1,0 +1,49 @@
+@model ToolDefinition
+<p>Choose an event date to count calendar days from today.</p>
+<form id="tool-inputs" class="batch-tool" novalidate>
+  <label for="event">Event date</label>
+  <input id="event" type="date" value="">
+  <div class="row">
+    <button type="submit">Calculate</button>
+    <button class="secondary" type="reset">Reset</button>
+  </div>
+</form>
+<p class="muted">Your input stays in your browser.</p>
+<div id="out" class="result" aria-live="polite"></div>
+<style>
+.batch-tool { display: grid; gap: 4px; }
+.batch-tool input, .batch-tool select, .batch-tool textarea { width: 100%; min-height: 44px; margin-bottom: 8px; }
+.batch-tool textarea { font: inherit; resize: vertical; }
+.batch-tool button { min-height: 44px; }
+#out { overflow-wrap: anywhere; }
+#qr-preview canvas { max-width: 100%; height: auto; }
+</style>
+<script>
+const nextWeek = new Date();
+nextWeek.setDate(nextWeek.getDate() + 7);
+const dateValue = new Date(Date.UTC(nextWeek.getFullYear(), nextWeek.getMonth(), nextWeek.getDate())).toISOString().slice(0, 10);
+$('event').defaultValue = dateValue;
+$('event').value = dateValue;
+
+function calculate() {
+  const target = $('event').valueAsNumber;
+  if (!Number.isFinite(target)) throw new Error('Choose a valid event date.');
+  const today = new Date();
+  const start = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const days = (target - start) / 86400000;
+  return [days === 0 ? 'Today' : Math.abs(days) + (Math.abs(days) === 1 ? ' day ' : ' days ') + (days > 0 ? 'until the event' : 'since the event')];
+}
+
+$('tool-inputs').addEventListener('submit', event => {
+  event.preventDefault();
+  try {
+    show('out', calculate());
+  } catch (error) {
+    show('out', error.message, false);
+  }
+});
+
+$('tool-inputs').addEventListener('reset', () => {
+  $('out').textContent = '';
+  });
+</script>

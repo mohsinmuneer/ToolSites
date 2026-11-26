@@ -1,0 +1,39 @@
+@model ToolDefinition
+<p>Enter text and choose a capitalization or naming style.</p>
+<label for="t">Text to convert</label>
+<textarea id="t" class="text-editor" rows="4" maxlength="100000" placeholder="Type or paste text">North Shore Tickets 2026</textarea>
+<div class="row" id="btns"></div>
+<div class="row"><button id="copy" type="button">Copy text</button></div>
+<div id="out" class="result" aria-live="polite"></div>
+<p class="muted">Your input stays in your browser.</p>
+<script>
+const words = text => text.toLowerCase().match(/[\p{L}\p{N}][\p{L}\p{M}\p{N}]*/gu) || [];
+const capitalize = word => {
+  const [first] = word;
+  return first.toUpperCase() + word.slice(first.length);
+};
+const modes = {
+  'UPPERCASE': text => text.toUpperCase(),
+  'lowercase': text => text.toLowerCase(),
+  'Title Case': text => text.toLowerCase().replace(/(^|[\s\-(])(\p{L})/gu, (_, before, letter) => before + letter.toUpperCase()),
+  'Sentence case': text => text.toLowerCase().replace(/(^\s*|[.!?]\s+)(\p{L})/gu, (_, before, letter) => before + letter.toUpperCase()),
+  'camelCase': text => words(text).map((word, index) => index ? capitalize(word) : word).join(''),
+  'snake_case': text => words(text).join('_'),
+  'kebab-case': text => words(text).join('-')
+};
+for (const [label, transform] of Object.entries(modes)) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'secondary';
+  button.textContent = label;
+  button.onclick = () => {
+    if (!$('t').value.trim()) { show('out', 'Enter text to convert.', false); return; }
+    const converted = transform($('t').value);
+    if (!converted) { show('out', 'No letters or numbers found for this style.', false); return; }
+    $('t').value = converted;
+    show('out', 'Converted to ' + label + '.', false);
+  };
+  $('btns').appendChild(button);
+}
+$('copy').onclick = () => copyFromEditor('t', 'out');
+</script>

@@ -1,0 +1,30 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Does it include the end date?", "No. It counts the days from the start date up to, but not including, the end date."),
+        new("Are public holidays excluded from business days?", "No. Only weekends are excluded."),
+        new("Can I enter the dates in any order?", "Yes. If the first date is later, the tool swaps them.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Start date <input id="d1" type="date"></label><label>End date <input id="d2" type="date"></label><button id="go" type="button">Calculate</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Date Difference Calculator</h2>
+  <p>Choose a start date and an end date, then press Calculate. You get the number of days between them, the same gap as years, months and days, the number of weeks, and a count of weekdays.</p>
+  <h2>About this tool</h2>
+  <p>Business days here means Monday to Friday and does not remove public holidays, because holidays differ by country and year. The end date itself is not counted, so the gap from Monday to the next Monday is 7 days. If you enter the dates in reverse order the tool swaps them for you.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+$('d1').value=todayStr(); $('d2').value=todayStr();
+on('go',()=>{let a=parseDate('d1'),b=parseDate('d2'); if(!a||!b) return fail('out','Please choose both dates.'); if(a>b){const t=a;a=b;b=t;}
+const days=Math.round((b-a)/86400000); const d=ymd(a,b); let bd=0; const c=new Date(a); while(c<b){const w=c.getDay(); if(w!==0&&w!==6) bd++; c.setDate(c.getDate()+1);}
+show('out',fmtN(days,0)+' days',[d.y+' years, '+d.m+' months, '+d.d+' days','About '+fmtN(days/7,1)+' weeks','Business days (Mon-Fri, end date not counted): '+fmtN(bd,0)]);});
+</script>

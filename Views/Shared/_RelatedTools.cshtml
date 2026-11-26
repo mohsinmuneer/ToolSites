@@ -1,0 +1,16 @@
+@{
+    var self = ViewData["Slug"] as string;
+    var cur = ToolRegistry.Find(self ?? "");
+    var list = ToolRegistry.Visible.Where(t => t.Slug != self)
+        .OrderBy(t => cur != null && t.Category == cur.Category ? 0 : 1).Take(4).ToList();
+}
+@if (list.Count > 0)
+{
+    <h2>More free tools</h2>
+    <ul>
+    @foreach (var t in list)
+    {
+        <li><a href="/@t.Slug">@t.H1</a></li>
+    }
+    </ul>
+}

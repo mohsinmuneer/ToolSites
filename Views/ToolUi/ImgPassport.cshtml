@@ -1,0 +1,22 @@
+@model ToolDefinition
+<div class="row"><input id="f" type="file" accept="image/*">
+<label>Size <select id="size"><option value="600,600">US passport / visa 2 x 2 in (600 x 600 px)</option><option value="413,531">35 x 45 mm (413 x 531 px)</option></select></label></div>
+<div class="row"><label>Zoom <input id="z" type="range" min="50" max="300" value="100"></label>
+<label>Left / right <input id="px" type="range" min="-100" max="100" value="0"></label>
+<label>Up / down <input id="py" type="range" min="-100" max="100" value="0"></label></div>
+<canvas id="cv" style="max-width:100%;border:1px solid #d9e0e6;background:#fff"></canvas>
+<div class="row"><button id="go" type="button">Download JPEG</button></div>
+<div id="out" class="muted" aria-live="polite"></div>
+<script>
+let img = null;
+function draw() {
+  const [W, H] = $('size').value.split(',').map(Number), cv = $('cv'); cv.width = W; cv.height = H; cv.style.width = Math.min(W, 300) + 'px';
+  const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); if (!img) return;
+  const base = Math.max(W / img.naturalWidth, H / img.naturalHeight), s = base * (num('z') / 100), dw = img.naturalWidth * s, dh = img.naturalHeight * s;
+  g.drawImage(img, (W - dw) / 2 + num('px') * W / 200, (H - dh) / 2 + num('py') * H / 200, dw, dh);
+}
+$('f').onchange = async () => { const file = $('f').files[0]; if (!file) return; try { img = await loadImage(file); draw(); show('out', 'Adjust zoom and position so the face is centered.', false); } catch (e) { show('out', e.message, false); } };
+['size', 'z', 'px', 'py'].forEach(id => $(id).addEventListener('input', draw));
+$('go').onclick = async () => { if (!img) { show('out', 'Choose a photo first.', false); return; } download(await canvasBlob($('cv'), 'image/jpeg', 0.95), 'passport-photo.jpg'); };
+draw();
+</script>

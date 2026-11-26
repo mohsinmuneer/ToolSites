@@ -1,0 +1,31 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Is the password stored anywhere?", "No. It is created in your browser and disappears when you leave the page."),
+        new("How long should a password be?", "At least 12 to 16 characters for important accounts."),
+        new("Should I reuse passwords?", "No. Use a unique password for each account.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Length <input id="len" type="number" step="any" value="16" style="width:70px" min="6" max="64"></label><label><input id="u" type="checkbox" checked> ABC</label><label><input id="l" type="checkbox" checked> abc</label><label><input id="n" type="checkbox" checked> 123</label><label><input id="s" type="checkbox" checked> #$%</label><button id="go" type="button">Generate</button><button id="cp" class="secondary" type="button">Copy</button></div><p><code id="pw" style="font-size:20px;word-break:break-all"></code></p><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Password Generator</h2>
+  <p>Pick a length and the kinds of characters you want, then press Generate. Copy the password straight into your password manager. A new random password is created each time you press the button.</p>
+  <h2>About this tool</h2>
+  <p>Passwords here are made with your browser cryptographic random generator, so they are unpredictable and are never sent to a server. Length matters more than complexity: a 16-character password with mixed characters is far harder to crack than an 8-character one. Use a different password for every account and store them in a password manager rather than reusing or memorizing them.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+const sets={u:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',l:'abcdefghijklmnopqrstuvwxyz',n:'0123456789',s:'!@@#$%^&*()-_=+[]{};:,.?'};
+function gen(){const len=Math.min(64,Math.max(6,Math.round(num('len')||16))); const act=Object.keys(sets).filter(k=>$(k).checked); if(!act.length) return fail('out','Choose at least one character type.');
+const all=act.map(k=>sets[k]).join(''); const c=act.map(k=>sets[k][rndInt(sets[k].length)]); while(c.length<len){c.push(all[rndInt(all.length)]);}
+for(let i=c.length-1;i>0;i--){const j=rndInt(i+1); const t=c[i]; c[i]=c[j]; c[j]=t;} $('pw').textContent=c.join(''); const bits=Math.round(len*Math.log2(all.length)); show('out','Strength: about '+bits+' bits',[bits>=80?'Strong':bits>=60?'Good':'Consider a longer password']);}
+on('go',gen); on('cp',()=>copyText($('pw').textContent).then(()=>show('out','Copied to clipboard.'),()=>fail('out','Could not copy.'))); gen();
+</script>

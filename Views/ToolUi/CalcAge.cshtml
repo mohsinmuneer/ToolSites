@@ -1,0 +1,20 @@
+@model ToolDefinition
+<div class="row">
+  <label>Date of birth <input id="dob" type="date"></label>
+  <label>Age at date <input id="on" type="date"></label>
+</div>
+<button id="go" type="button">Calculate age</button>
+<div id="out" class="result" aria-live="polite"></div>
+<script>
+$('on').value = new Date().toLocaleDateString('en-CA');
+$('go').addEventListener('click', () => {
+  const b = parseDate($('dob').value), t = parseDate($('on').value);
+  if (!b || !t) { show('out', 'Please enter both dates.', false); return; }
+  if (b > t) { show('out', 'Date of birth must be before the second date.', false); return; }
+  const [y, m, d] = ageParts(b, t);
+  const days = Math.round((t - b) / 86400000);
+  let next = new Date(t.getFullYear(), b.getMonth(), b.getDate()); if (next <= t) next.setFullYear(t.getFullYear() + 1);
+  show('out', [y + ' years, ' + m + ' months, ' + d + ' days',
+    'Total days lived: ' + fix(days, 0), 'Days until next birthday: ' + Math.round((next - t) / 86400000)]);
+});
+</script>

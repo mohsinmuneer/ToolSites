@@ -1,0 +1,30 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("What is PMI?", "Private mortgage insurance protects the lender when the down payment is under 20%. It is usually dropped once you build enough equity."),
+        new("Does the payment include HOA fees?", "No. HOA dues and closing costs are not included."),
+        new("Which term should I choose?", "Shorter terms have higher monthly payments but far less total interest. Longer terms lower the payment but cost more overall.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Home price ($) <input id="hp" type="number" step="any" value="350000" style="width:130px"></label><label>Down payment (%) <input id="dp" type="number" step="any" value="20" style="width:70px"></label><label>Interest rate (%) <input id="rt" type="number" step="any" value="6.5" style="width:70px"></label><label>Term <select id="term"><option value="30" selected>30 years</option><option value="20">20 years</option><option value="15">15 years</option></select></label></div><div class="row"><label>Property tax (% / year) <input id="ptax" type="number" step="any" value="1.1" style="width:70px"></label><label>Home insurance ($ / year) <input id="ins" type="number" step="any" value="1500" style="width:100px"></label><label>PMI (% / year, if down payment is under 20%) <input id="pmi" type="number" step="any" value="0.5" style="width:70px"></label><button id="go" type="button">Calculate</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Mortgage Calculator</h2>
+  <p>Enter the home price, the down payment as a percentage, the interest rate and the loan term. Add your yearly property tax rate, home insurance cost and a PMI rate if your down payment is below 20%. The calculator breaks your monthly payment into principal and interest, tax, insurance and PMI.</p>
+  <h2>About this tool</h2>
+  <p>Principal and interest use the standard amortization formula. Property tax and insurance are spread evenly over 12 months. PMI (private mortgage insurance) is usually required when the down payment is under 20% and is estimated here as a yearly percentage of the loan. HOA dues, closing costs and local tax differences are not included, so use the result as a starting point and ask a lender for an official quote.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',()=>{const hp=num('hp'),dp=num('dp'),r=num('rt'),yrs=parseInt($('term').value,10),pt=num('ptax')||0,ins=num('ins')||0,pmi=num('pmi')||0;
+if(!(hp>0)||isNaN(dp)||dp<0||dp>=100||isNaN(r)||r<0) return fail('out','Enter a home price, a down payment between 0 and 99% and a rate of 0 or more.');
+const loan=hp*(1-dp/100), n=yrs*12, i=r/100/12, pi=i===0?loan/n:loan*i/(1-Math.pow(1+i,-n)), tax=hp*pt/100/12, hi=ins/12, pm=dp<20?loan*pmi/100/12:0, tot=pi+tax+hi+pm;
+show('out','Estimated monthly payment: '+money(tot),['Principal and interest: '+money(pi),'Property tax: '+money(tax),'Home insurance: '+money(hi),'PMI: '+money(pm),'Loan amount: '+money(loan),'Total interest over the term (P&I only): '+money(pi*n-loan)]);});
+</script>

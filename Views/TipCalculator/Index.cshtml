@@ -1,0 +1,28 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("What tip percentage is normal in the US?", "About 15% to 20% for table service is typical."),
+        new("Should I tip on the pre-tax amount?", "Many people do. Enter the pre-tax amount as the bill to match."),
+        new("How do I split unevenly?", "Calculate each person separately by entering their own part of the bill with 1 person.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Bill ($) <input id="bill" type="number" step="any" value="80" style="width:100px"></label><label>Tip (%) <input id="tip" type="number" step="any" value="18" style="width:70px"></label><label>People <input id="ppl" type="number" step="any" value="2" style="width:60px" min="1"></label><button id="go" type="button">Calculate</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Tip Calculator</h2>
+  <p>Enter the bill amount before tip, the tip percentage you want to leave and the number of people sharing the check. The result shows the tip, the total and what each person pays.</p>
+  <h2>About this tool</h2>
+  <p>Tip = bill x tip percentage. Total = bill + tip. Each share = total divided by the number of people. In the United States tipping 15% to 20% at a sit-down restaurant is common, and some checks already include a service charge, so look before adding more. Calculate the tip on the pre-tax amount if you prefer, by entering that amount as the bill.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',()=>{const b=num('bill'),t=num('tip'),p=Math.max(1,Math.round(num('ppl')||1)); if(!(b>=0)||!(t>=0)) return fail('out','Enter a bill and a tip percentage of 0 or more.');
+const tip=b*t/100, tot=b+tip; show('out','Total: '+money(tot),['Tip: '+money(tip),'Each of '+p+' pays: '+money(tot/p),'Tip per person: '+money(tip/p)]);});
+</script>

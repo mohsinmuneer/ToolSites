@@ -1,0 +1,13 @@
+@model ToolDefinition
+<div class="row"><label>Start date <input id="d1" type="date"></label><label>End date <input id="d2" type="date"></label></div>
+<button id="go" type="button">Calculate</button>
+<div id="out" class="result" aria-live="polite"></div>
+<script>
+$('go').onclick = () => {
+  let a = parseDate($('d1').value), b = parseDate($('d2').value);
+  if (!a || !b) { show('out', 'Please enter both dates.', false); return; }
+  if (a > b) [a, b] = [b, a];
+  const days = Math.round((b - a) / 86400000), [y, m, d] = ageParts(a, b);
+  show('out', [fix(days, 0) + ' days', Math.floor(days / 7) + ' weeks and ' + (days % 7) + ' days', y + ' years, ' + m + ' months, ' + d + ' days']);
+};
+</script>

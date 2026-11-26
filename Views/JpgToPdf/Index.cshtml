@@ -1,0 +1,39 @@
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+  @Html.AntiForgeryToken()
+  <p><input id="files" type="file" accept="image/jpeg,image/png" multiple></p>
+  <p>
+    <label>Page size
+      <select id="pageSize"><option value="A4">A4</option><option value="Letter">US Letter</option></select>
+    </label>
+  </p>
+  <button id="go">Convert to PDF</button>
+  <div id="msg" class="err" role="alert"></div>
+  <p id="done" hidden><a id="dl" download="images.pdf">Download your PDF</a></p>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">@await Html.PartialAsync("_ToolContent", ToolRegistry.Find("jpg-to-pdf")!)</div>
+<partial name="_RelatedTools" />
+
+<script>
+const go=document.getElementById('go'), msg=document.getElementById('msg');
+go.addEventListener('click', async () => {
+  msg.textContent=''; document.getElementById('done').hidden=true;
+  const files=document.getElementById('files').files;
+  if(!files.length){ msg.textContent='Please choose at least one image.'; return; }
+  const fd=new FormData();
+  for(const f of files) fd.append('files', f);
+  fd.append('pageSize', document.getElementById('pageSize').value);
+  fd.append('__RequestVerificationToken', document.querySelector('input[name=__RequestVerificationToken]').value);
+  go.disabled=true; go.textContent='Converting...';
+  try{
+    const r=await fetch('/jpg-to-pdf/convert',{method:'POST',body:fd});
+    if(!r.ok){ let e='Something went wrong. Please try again.'; try{ e=(await r.json()).error||e; }catch{} msg.textContent=e; return; }
+    const url=URL.createObjectURL(await r.blob());
+    const a=document.getElementById('dl'); a.href=url; document.getElementById('done').hidden=false;
+  } catch { msg.textContent='Network error. Please try again.'; }
+  finally{ go.disabled=false; go.textContent='Convert to PDF'; }
+});
+</script>

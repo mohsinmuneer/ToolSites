@@ -1,0 +1,55 @@
+@model ToolDefinition
+<p>Enter grades and credits for up to three courses.</p>
+<form id="tool-inputs" class="batch-tool" novalidate>
+  <div><label for="grade1">Course 1 grade points</label> <input id="grade1" type="number" value="4" min="0" max="4" step=".01" required></div>
+  <div><label for="credits1">Course 1 credits</label> <input id="credits1" type="number" value="3" min="0" step="any" required></div>
+  <div><label for="grade2">Course 2 grade points</label> <input id="grade2" type="number" value="3" min="0" max="4" step=".01" required></div>
+  <div><label for="credits2">Course 2 credits</label> <input id="credits2" type="number" value="4" min="0" step="any" required></div>
+  <div><label for="grade3">Course 3 grade points</label> <input id="grade3" type="number" value="3.7" min="0" max="4" step=".01" required></div>
+  <div><label for="credits3">Course 3 credits</label> <input id="credits3" type="number" value="3" min="0" step="any" required></div>
+  <div class="row">
+    <button type="submit">Calculate</button>
+    <button class="secondary" type="reset">Reset</button>
+  </div>
+</form>
+<p class="muted">Your input stays in your browser.</p>
+<div id="out" class="result" aria-live="polite"></div>
+<style>
+.batch-tool { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; }
+.batch-tool .row { grid-column: 1 / -1; }
+.batch-tool input, .batch-tool select, .batch-tool textarea { width: 100%; min-height: 44px; margin-bottom: 8px; }
+.batch-tool textarea { font: inherit; resize: vertical; }
+.batch-tool button { min-height: 44px; }
+#out { overflow-wrap: anywhere; }
+#qr-preview canvas { max-width: 100%; height: auto; }
+</style>
+<script>
+function readNumber(id) {
+  const field = $(id);
+  if (!field.validity.valid || !Number.isFinite(field.valueAsNumber)) {
+    throw new Error('Enter a valid value for ' + field.labels[0].textContent.toLowerCase() + '.');
+  }
+  return field.valueAsNumber;
+}
+
+function calculate() {
+  const courses = [1, 2, 3].map(i => [readNumber('grade' + i), readNumber('credits' + i)]);
+  const credits = courses.reduce((total, course) => total + course[1], 0);
+  if (!credits) throw new Error('Enter credits for at least one course.');
+  const points = courses.reduce((total, [grade, credit]) => total + grade * credit, 0);
+  return ['GPA: ' + (points / credits).toFixed(2), 'Total credits: ' + fix(credits)];
+}
+
+$('tool-inputs').addEventListener('submit', event => {
+  event.preventDefault();
+  try {
+    show('out', calculate());
+  } catch (error) {
+    show('out', error.message, false);
+  }
+});
+
+$('tool-inputs').addEventListener('reset', () => {
+  $('out').textContent = '';
+  });
+</script>

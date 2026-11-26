@@ -1,0 +1,52 @@
+@model ToolDefinition
+<p>Enter the original price and both discount percentages. Leave the second at zero if it does not apply.</p>
+<form id="tool-inputs" class="batch-tool" novalidate>
+  <label for="price">Original price ($)</label>
+  <input id="price" type="number" value="120" min="0" step="any" required>
+  <label for="first">First discount (%)</label>
+  <input id="first" type="number" value="25" min="0" max="100" step="any" required>
+  <label for="second">Extra discount (%)</label>
+  <input id="second" type="number" value="10" min="0" max="100" step="any" required>
+  <div class="row">
+    <button type="submit">Calculate</button>
+    <button class="secondary" type="reset">Reset</button>
+  </div>
+</form>
+<p class="muted">Your input stays in your browser.</p>
+<div id="out" class="result" aria-live="polite"></div>
+<style>
+.batch-tool { display: grid; gap: 4px; }
+.batch-tool input, .batch-tool select, .batch-tool textarea { width: 100%; min-height: 44px; margin-bottom: 8px; }
+.batch-tool textarea { font: inherit; resize: vertical; }
+.batch-tool button { min-height: 44px; }
+#out { overflow-wrap: anywhere; }
+#qr-preview canvas { max-width: 100%; height: auto; }
+</style>
+<script>
+function readNumber(id) {
+  const field = $(id);
+  if (!field.validity.valid || !Number.isFinite(field.valueAsNumber)) {
+    throw new Error('Enter a valid value for ' + field.labels[0].textContent.toLowerCase() + '.');
+  }
+  return field.valueAsNumber;
+}
+
+function calculate() {
+  const price = readNumber('price');
+  const final = price * (1 - readNumber('first') / 100) * (1 - readNumber('second') / 100);
+  return ['Final price: ' + usd(final), 'You save: ' + usd(price - final)];
+}
+
+$('tool-inputs').addEventListener('submit', event => {
+  event.preventDefault();
+  try {
+    show('out', calculate());
+  } catch (error) {
+    show('out', error.message, false);
+  }
+});
+
+$('tool-inputs').addEventListener('reset', () => {
+  $('out').textContent = '';
+  });
+</script>

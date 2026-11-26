@@ -1,0 +1,28 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Is the draw fair?", "Yes. Every name has the same chance, and picks are random."),
+        new("Can the same person win twice?", "No. Winners are removed from the pool after each pick."),
+        new("Can I pick several winners?", "Yes. Change the number of winners.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<textarea id="t" rows="8" style="width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px" placeholder="One name per line"></textarea><div class="row"><label>Winners <input id="k" type="number" step="any" value="1" style="width:70px" min="1"></label><button id="go" type="button">Pick</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Random Name Picker</h2>
+  <p>Paste your names, one per line, choose how many winners you need and press Pick. Each person can win only once per draw.</p>
+  <h2>About this tool</h2>
+  <p>The picker uses your browser cryptographic random generator and removes each winner from the pool before the next pick, so every entry has an equal chance and nobody wins twice. It works for classroom turns, raffles, team assignments and social media giveaways. For official contests, check the rules and laws that apply to prize draws in your location.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',()=>{const names=$('t').value.split('\n').map(s=>s.trim()).filter(Boolean); const k=Math.max(1,Math.round(num('k')||1)); if(!names.length) return fail('out','Add at least one name.'); if(k>names.length) return fail('out','You asked for more winners than names.');
+const pool=names.slice(), win=[]; for(let i=0;i<k;i++){win.push(pool.splice(rndInt(pool.length),1)[0]);} show('out',win.length===1?'Winner: '+win[0]:'Winners: '+win.join(', '),['Picked from '+names.length+' entries using a secure random generator.']);});
+</script>

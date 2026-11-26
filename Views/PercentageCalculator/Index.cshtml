@@ -1,0 +1,29 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("How do I calculate a percentage of a number?", "Divide the percentage by 100 and multiply by the number. 20% of 150 is 0.20 x 150 = 30."),
+        new("How do I find percent change?", "Subtract the old value from the new value, divide by the old value, then multiply by 100."),
+        new("Why is the starting value not allowed to be zero?", "Percent change divides by the starting value, and dividing by zero is undefined.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>What is <input id="p1a" type="number" step="any" value="20" style="width:80px"></label>% of<label> <input id="p1b" type="number" step="any" value="150" style="width:100px"></label><button id="b1" type="button">Go</button></div><div id="r1" class="result" aria-live="polite"></div><div class="row"><label> <input id="p2a" type="number" step="any" value="30" style="width:90px"></label>is what % of<label> <input id="p2b" type="number" step="any" value="120" style="width:100px"></label><button id="b2" type="button">Go</button></div><div id="r2" class="result" aria-live="polite"></div><div class="row">Change from<label> <input id="p3a" type="number" step="any" value="80" style="width:90px"></label>to<label> <input id="p3b" type="number" step="any" value="100" style="width:90px"></label><button id="b3" type="button">Go</button></div><div id="r3" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Percentage Calculator</h2>
+  <p>Use the first box for questions like "what is 20% of 150". Use the second to find what percent one number is of another, for example 30 out of 120. Use the third to measure percent increase or decrease between an old and a new value.</p>
+  <h2>About this tool</h2>
+  <p>The formulas are simple. Percent of: (percent / 100) x number. Percent share: part / whole x 100. Percent change: (new - old) / |old| x 100. A positive change is an increase, a negative one is a decrease. Percent change is not symmetric: going from 80 to 100 is +25%, but going back from 100 to 80 is -20%.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('b1',()=>{const a=num('p1a'),b=num('p1b'); if(isNaN(a)||isNaN(b)) return fail('r1','Enter both numbers.'); show('r1',fmtN(a/100*b,4),[a+'% of '+b]);});
+on('b2',()=>{const a=num('p2a'),b=num('p2b'); if(isNaN(a)||isNaN(b)||b===0) return fail('r2','Enter both numbers (the second cannot be 0).'); show('r2',fmtN(a/b*100,4)+'%',[a+' is '+fmtN(a/b*100,4)+'% of '+b]);});
+on('b3',()=>{const a=num('p3a'),b=num('p3b'); if(isNaN(a)||isNaN(b)||a===0) return fail('r3','Enter both numbers (the starting value cannot be 0).'); const c=(b-a)/Math.abs(a)*100; show('r3',(c>=0?'+':'')+fmtN(c,4)+'%',[c>=0?'Increase of '+fmtN(b-a,4):'Decrease of '+fmtN(a-b,4)]);});
+</script>

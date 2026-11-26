@@ -1,0 +1,13 @@
+@model string
+@{
+    var on = Cfg.GetValue<bool>("Ads:Enabled");
+    var slot = Cfg["Ads:" + Model];
+    var pub = Cfg["Ads:PublisherId"];
+}
+@if (on && !string.IsNullOrWhiteSpace(slot) && !string.IsNullOrWhiteSpace(pub))
+{
+    <div style="min-height:280px;margin:20px 0">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="@("ca-" + pub)" data-ad-slot="@slot" data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+}

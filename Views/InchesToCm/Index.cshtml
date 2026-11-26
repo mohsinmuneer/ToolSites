@@ -1,0 +1,29 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("How many centimeters are in an inch?", "Exactly 2.54 centimeters."),
+        new("How do I convert cm to inches?", "Divide the centimeters by 2.54."),
+        new("Is the result rounded?", "Results show up to six decimal places.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Inches <input id="a" type="number" step="any" value="10" style="width:150px"></label>=<label>Centimeters <input id="b" type="number" step="any" value="" style="width:150px"></label></div><p class="muted">Type in either box. The other one updates instantly.</p><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Inches to Centimeters Converter</h2>
+  <p>Type a length in inches to see centimeters, or type centimeters to see inches. Both boxes stay in sync as you type.</p>
+  <h2>About this tool</h2>
+  <p>One inch is defined as exactly 2.54 centimeters, so the conversion is exact: cm = inches x 2.54 and inches = cm / 2.54. For quick mental math, remember that 10 cm is about 4 inches and 1 foot (12 inches) is 30.48 cm. This is useful for clothing sizes, screen sizes, furniture and DIY measurements.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+pair('a','b',v=>v*2.54,v=>v/2.54);
+
+$('a').dispatchEvent(new Event('input'));
+</script>

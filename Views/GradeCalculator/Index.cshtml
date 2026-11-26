@@ -1,0 +1,73 @@
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+  <h2>Weighted grade</h2>
+  <table id="rows">
+    <thead><tr><th>Name (optional)</th><th>Grade %</th><th>Weight %</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <div class="row">
+    <button id="addRow" class="secondary" type="button">Add row</button>
+    <button id="calc" type="button">Calculate grade</button>
+  </div>
+  <div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<div class="card">
+  <h2>Grade needed on the final exam</h2>
+  <div class="row">
+    <label>Current grade % <input id="cur" type="number" min="0" max="200" step="any" value="85"></label>
+    <label>Final exam weight % <input id="fw" type="number" min="1" max="100" step="any" value="30"></label>
+    <label>Grade you want % <input id="want" type="number" min="0" max="200" step="any" value="90"></label>
+  </div>
+  <button id="calcFinal" type="button">Calculate needed score</button>
+  <div id="outFinal" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">@await Html.PartialAsync("_ToolContent", ToolRegistry.Find("grade-calculator")!)</div>
+<partial name="_RelatedTools" />
+
+<script>
+const tbody = document.querySelector('#rows tbody');
+function addRow(name, grade, weight){
+  const tr = document.createElement('tr');
+  const mk = (type, v, w, ph) => { const td = document.createElement('td'); const i = document.createElement('input');
+    i.type = type; if(type==='number'){ i.min='0'; i.step='any'; i.style.width = w; } else { i.style.width = w; i.placeholder = ph||''; }
+    i.value = v; td.appendChild(i); tr.appendChild(td); return i; };
+  mk('text', name||'', '160px', 'e.g. Homework');
+  mk('number', grade||'', '90px');
+  mk('number', weight||'', '90px');
+  const td = document.createElement('td'); const b = document.createElement('button');
+  b.type='button'; b.className='secondary'; b.textContent='Remove'; b.addEventListener('click', () => tr.remove());
+  td.appendChild(b); tr.appendChild(td); tbody.appendChild(tr);
+}
+addRow('Homework', '92', '20'); addRow('Midterm', '84', '30'); addRow('Project', '88', '20');
+document.getElementById('addRow').addEventListener('click', () => addRow());
+document.getElementById('calc').addEventListener('click', () => {
+  let sum = 0, wsum = 0;
+  tbody.querySelectorAll('tr').forEach(tr => {
+    const n = tr.querySelectorAll('input[type=number]');
+    const g = parseFloat(n[0].value), w = parseFloat(n[1].value);
+    if (Number.isFinite(g) && Number.isFinite(w) && w > 0) { sum += g*w; wsum += w; }
+  });
+  const out = document.getElementById('out'); out.textContent = '';
+  if (wsum <= 0) { out.textContent = 'Enter at least one grade with a weight above 0.'; return; }
+  const p = document.createElement('p'); p.style.fontWeight = '700';
+  p.textContent = 'Weighted grade: ' + (sum/wsum).toFixed(2) + '%';
+  out.appendChild(p);
+  const note = document.createElement('p'); note.className = 'muted';
+  note.textContent = 'Total weight entered: ' + wsum.toFixed(1) + '%' + (Math.abs(wsum-100) > 0.01 ? ' (not 100%, so this is your average so far)' : '');
+  out.appendChild(note);
+});
+document.getElementById('calcFinal').addEventListener('click', () => {
+  const cur = parseFloat(document.getElementById('cur').value), fw = parseFloat(document.getElementById('fw').value), want = parseFloat(document.getElementById('want').value);
+  const out = document.getElementById('outFinal');
+  if (![cur, fw, want].every(Number.isFinite) || fw <= 0 || fw > 100) { out.textContent = 'Please enter valid numbers (final weight between 1 and 100).'; return; }
+  const need = (want - cur*(1 - fw/100)) / (fw/100);
+  let msg = 'You need ' + need.toFixed(1) + '% on the final exam.';
+  if (need > 100) msg += ' That is above 100%, so this grade may not be reachable without extra credit.';
+  else if (need < 0) msg += ' You have already secured this grade.';
+  out.textContent = msg;
+});
+</script>

@@ -1,0 +1,36 @@
+@model ToolDefinition
+<div class="row"><input id="f" type="file" accept="application/pdf" multiple></div>
+<ol id="list"></ol>
+<button id="go" type="button">Merge PDFs</button>
+<div id="out" class="result" aria-live="polite"></div>
+<script>
+let files = [];
+function render() {
+  const ol = $('list'); ol.textContent = '';
+  files.forEach((f, i) => {
+    const li = document.createElement('li'); li.textContent = f.name + ' (' + kb(f.size) + ') ';
+    const up = document.createElement('button'), dn = document.createElement('button'), rm = document.createElement('button');
+    [up, dn, rm].forEach(b => { b.type = 'button'; b.className = 'secondary'; b.style.padding = '2px 8px'; b.style.marginLeft = '4px'; });
+    up.textContent = 'Up'; dn.textContent = 'Down'; rm.textContent = 'Remove';
+    up.onclick = () => { if (i > 0) { [files[i - 1], files[i]] = [files[i], files[i - 1]]; render(); } };
+    dn.onclick = () => { if (i < files.length - 1) { [files[i + 1], files[i]] = [files[i], files[i + 1]]; render(); } };
+    rm.onclick = () => { files.splice(i, 1); render(); };
+    li.append(up, dn, rm); ol.appendChild(li);
+  });
+}
+$('f').onchange = () => { files = files.concat([...$('f').files]); $('f').value = ''; render(); };
+$('go').onclick = async () => {
+  if (files.length < 2) { show('out', 'Add at least two PDF files.', false); return; }
+  if (files.reduce((s, f) => s + f.size, 0) > 100 * 1048576) { show('out', 'Total size is over 100 MB. Please use fewer files.', false); return; }
+  show('out', 'Merging...', false);
+  try {
+    const out = await PDFLib.PDFDocument.create();
+    for (const f of files) {
+      const src = await PDFLib.PDFDocument.load(await readBytes(f));
+      (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p));
+    }
+    const bytes = await out.save(); download(new Blob([bytes], { type: 'application/pdf' }), 'merged.pdf');
+    show('out', 'Done: ' + out.getPageCount() + ' pages, ' + kb(bytes.length), false);
+  } catch (e) { show('out', 'Could not merge. A file may be damaged or password-protected.', false); }
+};
+</script>

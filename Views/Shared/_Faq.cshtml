@@ -1,0 +1,22 @@
+@using System.Text.Json
+@model IEnumerable<FaqItem>
+<h2>Frequently asked questions</h2>
+@foreach (var f in Model)
+{
+    <h3>@f.Q</h3>
+    <p>@f.A</p>
+}
+@{
+    var schema = new Dictionary<string, object>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "FAQPage",
+        ["mainEntity"] = Model.Select(f => new Dictionary<string, object>
+        {
+            ["@type"] = "Question",
+            ["name"] = f.Q,
+            ["acceptedAnswer"] = new Dictionary<string, object> { ["@type"] = "Answer", ["text"] = f.A }
+        }).ToList()
+    };
+}
+<script type="application/ld+json">@Html.Raw(JsonSerializer.Serialize(schema))</script>

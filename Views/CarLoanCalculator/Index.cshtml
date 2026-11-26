@@ -1,0 +1,30 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Is sales tax charged on the trade-in value?", "It depends on the state. Some tax the full price, others tax the price minus the trade-in. Use the checkbox to match your state."),
+        new("Are dealer fees included?", "No. Title, registration and documentation fees are not included."),
+        new("What is APR?", "The annual percentage rate is the yearly cost of borrowing, shown as a percentage.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Vehicle price ($) <input id="price" type="number" step="any" value="30000" style="width:120px"></label><label>Down payment ($) <input id="down" type="number" step="any" value="3000" style="width:110px"></label><label>Trade-in value ($) <input id="trade" type="number" step="any" value="0" style="width:110px"></label></div><div class="row"><label>Sales tax (%) <input id="tax" type="number" step="any" value="6" style="width:70px"></label><label>APR (%) <input id="apr" type="number" step="any" value="6.5" style="width:70px"></label><label>Term (months) <input id="mo" type="number" step="any" value="60" style="width:70px"></label><label><input id="net" type="checkbox"> Tax only on price minus trade-in</label><button id="go" type="button">Calculate</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Car Loan Calculator</h2>
+  <p>Enter the vehicle price, your down payment, any trade-in value, the sales tax rate, the APR and the loan length in months. Tick the box if your state only taxes the price minus the trade-in. The calculator shows the amount financed and your estimated monthly payment.</p>
+  <h2>About this tool</h2>
+  <p>Amount financed = price + sales tax - down payment - trade-in. The monthly payment then follows the standard loan formula. Tax rules on trade-ins differ between US states, and dealers add title, registration and documentation fees that are not included here, so use the number as a planning estimate. Shorter terms cost less interest overall; longer terms lower the monthly payment.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',()=>{const p=num('price'),d=num('down')||0,t=num('trade')||0,tx=num('tax')||0,apr=num('apr'),n=num('mo'); if(!(p>0)||!(n>0)||isNaN(apr)||apr<0) return fail('out','Enter a price, an APR (0 or more) and a term in months.');
+const taxable=$('net').checked?Math.max(p-t,0):p, taxAmt=taxable*tx/100; const loan=p+taxAmt-d-t; if(loan<=0) return fail('out','Your down payment and trade-in cover the full cost, so no loan is needed.');
+const i=apr/100/12, m=i===0?loan/n:loan*i/(1-Math.pow(1+i,-n));
+show('out','Monthly payment: '+money(m),['Amount financed: '+money(loan),'Sales tax: '+money(taxAmt),'Total interest: '+money(m*n-loan),'Total of payments: '+money(m*n)]);});
+</script>

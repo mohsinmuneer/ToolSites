@@ -1,0 +1,21 @@
+@model ToolDefinition
+<div class="row"><label>Paragraphs <input id="np" type="number" min="1" max="20" value="3"></label>
+<label>Words per paragraph <input id="nw" type="number" min="5" max="200" value="50"></label>
+<label><input id="start" type="checkbox" checked> Start with "Lorem ipsum dolor sit amet"</label></div>
+<div class="row"><button id="go" type="button">Generate</button><button id="copy" type="button" class="secondary">Copy</button></div>
+<textarea id="out" rows="12" style="width:100%" readonly></textarea>
+<script>
+const W = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit voluptate velit esse cillum fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum'.split(' ');
+function sentence(n) { const w = Array.from({ length: n }, () => W[randInt(W.length)]); w[0] = w[0][0].toUpperCase() + w[0].slice(1); return w.join(' ') + '.'; }
+$('go').onclick = () => {
+  const np = Math.min(20, Math.max(1, Math.round(num('np')))), nw = Math.min(200, Math.max(5, Math.round(num('nw')))), paras = [];
+  for (let p = 0; p < np; p++) {
+    let left = nw, s = [];
+    while (left > 0) { const n = Math.min(left, 6 + randInt(10)); s.push(sentence(n)); left -= n; }
+    paras.push(s.join(' '));
+  }
+  if ($('start').checked) paras[0] = 'Lorem ipsum dolor sit amet, ' + paras[0].charAt(0).toLowerCase() + paras[0].slice(1);
+  $('out').value = paras.join('\n\n');
+};
+$('copy').onclick = () => copyText($('out').value, $('copy')); $('go').click();
+</script>

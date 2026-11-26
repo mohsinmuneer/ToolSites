@@ -1,0 +1,38 @@
+@model ToolDefinition
+<p>Enter a pay rate and schedule to estimate gross pay, or use the same schedule to convert a salary to hourly pay.</p>
+<h3>Hourly rate to salary</h3>
+<div class="row"><label>Hourly rate ($) <input id="hr" type="number" min="0" step="any" value="25"></label>
+<label>Hours per week <input id="hw" type="number" min="0" step="any" value="40"></label>
+<label>Paid weeks per year <input id="wk" type="number" min="1" max="52" step="any" value="52"></label></div>
+<button id="g1" type="button">Calculate pay</button>
+<div id="o1" class="result" aria-live="polite"></div>
+<h3>Salary to hourly rate</h3>
+<div class="row"><label>Annual salary ($) <input id="sal" type="number" min="0" step="any" value="52000"></label></div>
+<button id="g2" type="button">Calculate hourly rate</button>
+<div id="o2" class="result" aria-live="polite"></div>
+<p class="muted">Your input stays in your browser.</p>
+<script>
+function paidHours() {
+  const hours = $('hw').valueAsNumber, weeks = $('wk').valueAsNumber;
+  if (!Number.isFinite(hours) || hours <= 0 || hours > 168 || !Number.isFinite(weeks) || weeks < 1 || weeks > 52) return null;
+  return { hours, weeks, yearly: hours * weeks };
+}
+$('g1').onclick = () => {
+  const schedule = paidHours(), rate = $('hr').valueAsNumber;
+  if (!schedule || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(rate * schedule.yearly)) {
+    show('o1', 'Enter a valid rate, up to 168 hours per week and 1 to 52 paid weeks.', false);
+    return;
+  }
+  const yearly = rate * schedule.yearly, weekly = rate * schedule.hours;
+  show('o1', ['Yearly: ' + usd(yearly), 'Monthly average: ' + usd(yearly / 12), 'Biweekly average: ' + usd(yearly / 26),
+    'Paid week: ' + usd(weekly), 'Paid day (5 days per week): ' + usd(weekly / 5) + '. Gross pay, before tax.']);
+};
+$('g2').onclick = () => {
+  const schedule = paidHours(), salary = $('sal').valueAsNumber;
+  if (!schedule || !Number.isFinite(salary) || salary < 0 || !Number.isFinite(salary / schedule.yearly)) {
+    show('o2', 'Enter a valid salary and check the hours and paid weeks above.', false);
+    return;
+  }
+  show('o2', 'Hourly rate: ' + usd(salary / schedule.yearly) + ' (based on ' + fix(schedule.yearly, 2) + ' hours a year)');
+};
+</script>

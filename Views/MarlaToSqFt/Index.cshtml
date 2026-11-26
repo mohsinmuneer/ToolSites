@@ -1,0 +1,30 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("How many square feet is 1 marla?", "272.25 square feet by the standard conversion."),
+        new("How many marla in 1 kanal?", "20 marla."),
+        new("Does the marla size differ by area?", "Yes. Some places use a different local marla, so check your documents.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Marla <input id="a" type="number" step="any" value="5" style="width:150px"></label>=<label>Square feet <input id="b" type="number" step="any" value="" style="width:150px"></label></div><p class="muted">Type in either box. The other one updates instantly.</p><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Marla to Square Feet Converter</h2>
+  <p>Type the plot size in marla to get square feet, or type square feet to get marla. Extra units are listed below the boxes.</p>
+  <h2>About this tool</h2>
+  <p>In Pakistan the standard government conversion is 1 marla = 272.25 square feet (30.25 square yards) and 1 kanal = 20 marla = 5,445 square feet. Some regions and housing societies use a different local marla, for example 225 square feet, so confirm the unit in your property documents before buying or selling.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+pair('a','b',v=>v*272.25,v=>v/272.25);
+function more(){const m=parseFloat($('a').value); if(!Number.isFinite(m)){$('out').textContent='';return;} const sf=m*272.25; show('out',fmtN(m/20,3)+' kanal',[fmtN(sf/9,2)+' square yards',fmtN(sf*0.09290304,2)+' square meters']);}
+$('a').addEventListener('input',more); $('b').addEventListener('input',more);
+$('a').dispatchEvent(new Event('input'));
+</script>

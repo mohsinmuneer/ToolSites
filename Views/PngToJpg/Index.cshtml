@@ -1,0 +1,27 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Why is the background white?", "JPG has no transparency, so transparent pixels are filled with white."),
+        new("Is quality lost?", "A little, because JPG is lossy. This tool uses a high quality setting."),
+        new("Are my files uploaded?", "No. Conversion happens in your browser.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><input id="f" type="file" accept="image/png" multiple><button id="go" type="button">Convert</button></div><div id="links"></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the PNG to JPG Converter</h2>
+  <p>Select one or more PNG files and press Convert. A download link appears for each JPG. Transparent areas are filled with white because JPG does not support transparency.</p>
+  <h2>About this tool</h2>
+  <p>PNG is lossless and supports transparency, which makes files large. JPG uses lossy compression and is much smaller for photos, which helps websites load faster and fits upload limits. Converting from PNG to JPG is one-way: the transparency is replaced by a white background and some fine detail is lost. Keep your original PNG if you may need it later.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',async()=>{$('links').textContent=''; $('out').textContent=''; await imageConvert('f','image/jpeg','jpg',0.92,'links');});
+</script>

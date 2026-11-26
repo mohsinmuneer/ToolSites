@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>@ViewData["Title"]</title>
+<meta name="description" content="@ViewData["Description"]">
+<link rel="canonical" href="@ViewData["Canonical"]">
+@if (!string.IsNullOrWhiteSpace(Cfg["Seo:GoogleVerification"]))
+{
+    <meta name="google-site-verification" content="@Cfg["Seo:GoogleVerification"]">
+}
+@if (!string.IsNullOrWhiteSpace(Cfg["Seo:BingVerification"]))
+{
+    <meta name="msvalidate.01" content="@Cfg["Seo:BingVerification"]">
+}
+<meta property="og:title" content="@ViewData["Title"]">
+<meta property="og:description" content="@ViewData["Description"]">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="@Cfg["Seo:SiteName"]">
+@if (Cfg.GetValue<bool>("Ads:Enabled") && !string.IsNullOrWhiteSpace(Cfg["Ads:PublisherId"]))
+{
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=@("ca-" + Cfg["Ads:PublisherId"])" crossorigin="anonymous"></script>
+}
+<script src="/js/t.js"></script>
+<style>
+:root{--ink:#14222e;--bg:#f4f6f8;--card:#fff;--accent:#0a7d6e;--line:#d9e0e6;--muted:#5b6b78}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.6 system-ui,Segoe UI,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+header{padding:12px 20px;background:var(--card);border-bottom:1px solid var(--line);display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+header .brand{font-weight:700;color:var(--ink);text-decoration:none;font-size:18px}
+header nav a{color:var(--muted);text-decoration:none;margin-right:14px;font-size:15px}
+footer{padding:20px;background:var(--card);border-top:1px solid var(--line);margin-top:40px;font-size:14px;color:var(--muted)}
+footer a{color:var(--muted);margin-right:12px}
+main{max-width:860px;margin:0 auto;padding:24px 16px}
+h1{line-height:1.25}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:20px}
+a.card{display:block;color:inherit;text-decoration:none}
+a.card:hover{border-color:var(--accent)}
+button,.btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:16px;cursor:pointer}
+button.secondary{background:#e8eef2;color:var(--ink)}
+button:disabled{opacity:.5}
+input,select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);max-width:100%}
+input[type=number]{width:90px}
+table{border-collapse:collapse;width:100%}
+td,th{padding:6px 4px;text-align:left}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.err{color:#b3261e;margin-top:10px}
+.result{font-size:18px;margin-top:14px}
+.muted{color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.die{display:inline-block;min-width:44px;padding:8px 10px;margin:4px;border:2px solid var(--accent);border-radius:10px;text-align:center;font-weight:700;background:#fff}
+</style>
+<link rel="stylesheet" href="~/css/directory.css" asp-append-version="true">
+@if (Context.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment() && Cfg.GetValue<bool>("Tools:PreviewAll"))
+{
+    <meta name="robots" content="noindex">
+}
+</head>
+<body>
+<header>
+  <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span>@Cfg["Seo:SiteName"]</a>
+  <nav><a href="/">All tools</a><a href="/about">About</a><a href="/contact">Contact</a></nav>
+</header>
+<main class="@ViewData["MainClass"]">@RenderBody()</main>
+<footer>
+  <div><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms</a></div>
+  <p>&copy; @DateTime.UtcNow.Year @Cfg["Seo:SiteName"]. Files are processed in memory and are not stored.</p>
+</footer>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

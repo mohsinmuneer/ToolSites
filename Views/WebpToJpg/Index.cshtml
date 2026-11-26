@@ -1,0 +1,27 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Why convert WebP to JPG?", "JPG is accepted almost everywhere, while some older tools do not open WebP."),
+        new("What happens to transparency?", "It becomes white, because JPG has no transparency."),
+        new("Are my files uploaded?", "No. Conversion happens in your browser.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><input id="f" type="file" accept="image/webp" multiple><button id="go" type="button">Convert</button></div><div id="links"></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the WebP to JPG Converter</h2>
+  <p>Select one or more WebP files and press Convert. A JPG download link appears for each image.</p>
+  <h2>About this tool</h2>
+  <p>WebP is a modern image format used by many websites, but some programs, printers and upload forms still only accept JPG. This converter decodes the WebP in your browser and saves it as a JPG, with transparent areas turned white. Your browser must support WebP, which all current major browsers do.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',async()=>{$('links').textContent=''; $('out').textContent=''; await imageConvert('f','image/jpeg','jpg',0.92,'links');});
+</script>

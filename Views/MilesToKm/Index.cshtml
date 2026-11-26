@@ -1,0 +1,29 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("How many km is 1 mile?", "About 1.609 kilometers."),
+        new("How many miles is 5 km?", "About 3.11 miles."),
+        new("Is the factor exact?", "Yes. 1 mile is defined as 1.609344 km.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Miles <input id="a" type="number" step="any" value="26.2" style="width:150px"></label>=<label>Kilometers <input id="b" type="number" step="any" value="" style="width:150px"></label></div><p class="muted">Type in either box. The other one updates instantly.</p><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Miles to Kilometers Converter</h2>
+  <p>Enter miles to see kilometers or enter kilometers to see miles. The tool updates both boxes live.</p>
+  <h2>About this tool</h2>
+  <p>One mile equals exactly 1.609344 kilometers. Multiply miles by 1.609 to get kilometers, or divide kilometers by 1.609 for miles. As a handy rule, 10 km is about 6.2 miles, and a marathon of 26.2 miles is 42.195 km. Road signs in the US use miles, while most other countries use kilometers.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+pair('a','b',v=>v*1.609344,v=>v/1.609344);
+
+$('a').dispatchEvent(new Event('input'));
+</script>

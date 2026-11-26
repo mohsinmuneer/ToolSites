@@ -1,0 +1,30 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("What is a healthy BMI?", "For most adults, 18.5 to 24.9 is considered the normal range."),
+        new("Is BMI accurate for everyone?", "No. It ignores muscle mass, age and body composition, so it is only a screening tool."),
+        new("Is my data stored?", "No. The calculation runs in your browser.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Units <select id="unit"><option value="m" selected>Metric (kg, cm)</option><option value="i">Imperial (lb, ft, in)</option></select></label></div><div id="metric" class="row"><label>Weight (kg) <input id="kg" type="number" step="any" value="70" style="width:80px"></label><label>Height (cm) <input id="cm" type="number" step="any" value="175" style="width:80px"></label></div><div id="imp" class="row" style="display:none"><label>Weight (lb) <input id="lb" type="number" step="any" value="155" style="width:80px"></label><label>Height (ft) <input id="ft" type="number" step="any" value="5" style="width:60px"></label><label>(in) <input id="inch" type="number" step="any" value="9" style="width:60px"></label></div><button id="go" type="button">Calculate</button><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the BMI Calculator</h2>
+  <p>Choose metric or imperial units, enter your weight and height and press Calculate. The tool shows your BMI and which adult category it falls into.</p>
+  <h2>About this tool</h2>
+  <p>BMI = weight in kilograms divided by height in metres squared. For pounds and inches the formula is 703 x weight / height squared. The common adult categories are under 18.5 (underweight), 18.5 to 24.9 (normal), 25 to 29.9 (overweight) and 30 or more (obesity range). BMI does not measure body fat, muscle or fitness, and it is interpreted differently for children, athletes and older adults. For health advice, speak to a doctor.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+$('unit').addEventListener('change',()=>{const m=$('unit').value==='m'; $('metric').style.display=m?'flex':'none'; $('imp').style.display=m?'none':'flex';});
+on('go',()=>{let b; if($('unit').value==='m'){const w=num('kg'),h=num('cm')/100; if(!(w>0)||!(h>0)) return fail('out','Enter your weight and height.'); b=w/(h*h);}
+else{const w=num('lb'),h=(num('ft')||0)*12+(num('inch')||0); if(!(w>0)||!(h>0)) return fail('out','Enter your weight and height.'); b=703*w/(h*h);}
+const c=b<18.5?'Underweight':b<25?'Normal weight':b<30?'Overweight':'Obesity range'; show('out','BMI: '+b.toFixed(1)+' ('+c+')',['Adult categories: under 18.5, 18.5 to 24.9, 25 to 29.9, 30 and above.','BMI is a screening number, not a diagnosis.']);});
+</script>

@@ -1,0 +1,28 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Why does my JSON say invalid?", "Check for trailing commas, single quotes, missing commas or unquoted keys."),
+        new("Does it upload my data?", "No. Parsing happens in your browser."),
+        new("What is minified JSON?", "JSON with all unnecessary whitespace removed to make it smaller.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<textarea id="t" rows="12" style="width:100%;font:13px/1.4 monospace;padding:10px;border:1px solid var(--line);border-radius:8px" placeholder='{"name":"example","items":[1,2,3]}'></textarea><div class="row"><button id="fm" type="button">Format</button><button id="mn" class="secondary" type="button">Minify</button><button id="cp" class="secondary" type="button">Copy</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the JSON Formatter and Validator</h2>
+  <p>Paste JSON into the box and press Format to make it readable with indentation, or Minify to remove all extra spaces. If the JSON is invalid, the tool shows the error message from the parser so you can find the problem.</p>
+  <h2>About this tool</h2>
+  <p>JSON needs double quotes around keys and strings, no trailing commas and no comments. The most common errors are a missing comma, a single quote used instead of a double quote, or an extra comma after the last item. Formatting makes nested data easy to read, and minifying reduces size before you send it in an API request. Your data stays in your browser and is not uploaded.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+function run(ind){try{const o=JSON.parse($('t').value); $('t').value=JSON.stringify(o,null,ind); show('out','Valid JSON');}catch(e){fail('out','Invalid JSON: '+e.message);}}
+on('fm',()=>run(2)); on('mn',()=>run(0)); on('cp',()=>copyText($('t').value).then(()=>show('out','Copied to clipboard.'),()=>fail('out','Could not copy.')));
+</script>

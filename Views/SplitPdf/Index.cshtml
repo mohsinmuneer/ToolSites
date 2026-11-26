@@ -1,0 +1,33 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("How do I delete pages from a PDF?", "Extract all the pages except the ones you want to remove."),
+        new("What format do page ranges use?", "Numbers and ranges separated by commas, for example 1-3,5."),
+        new("Is my PDF uploaded?", "No. Everything runs in your browser.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><input id="f" type="file" accept="application/pdf"></div><div class="row"><label>Pages to keep <input id="rg" type="text" placeholder="e.g. 1-3,5,8-10" style="width:200px"></label><button id="go" type="button">Extract pages</button></div><p id="info" class="muted"></p><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Split PDF and Extract Pages</h2>
+  <p>Choose a PDF and the tool shows how many pages it has. Type the pages you want to keep, for example 1-3,5,8-10, and press Extract. A new PDF with only those pages downloads.</p>
+  <h2>About this tool</h2>
+  <p>This tool builds a new PDF containing only the pages you list, in the order you list them. Use ranges with a dash and separate items with commas. To remove pages, list all the pages you want to keep. It works in your browser, so the original file never leaves your device. Password-protected PDFs must be unlocked first.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js" crossorigin="anonymous"></script>
+<script>
+$('f').addEventListener('change',async()=>{const f=$('f').files[0]; if(!f||typeof PDFLib==='undefined') return; try{const d=await PDFLib.PDFDocument.load(await f.arrayBuffer()); $('info').textContent='This PDF has '+d.getPageCount()+' pages.';}catch(e){$('info').textContent='';fail('out','Could not read this PDF.');}});
+on('go',async()=>{const f=$('f').files[0]; if(!f) return fail('out','Please choose a PDF.'); if(typeof PDFLib==='undefined') return fail('out','The PDF library could not load. Check your connection.');
+try{const d=await PDFLib.PDFDocument.load(await f.arrayBuffer()), n=d.getPageCount(), idx=[]; const txt=$('rg').value.replace(/\s/g,''); if(!txt) return fail('out','Enter the pages to keep, such as 1-3,5.');
+for(const part of txt.split(',')){const m=part.match(/^(\d+)(?:-(\d+))?$/); if(!m) return fail('out','Invalid range: '+part); const a=parseInt(m[1],10), b=m[2]?parseInt(m[2],10):a; if(a<1||b<a||b>n) return fail('out','Pages must be between 1 and '+n+': '+part); for(let p=a;p<=b;p++) idx.push(p-1);}
+const o=await PDFLib.PDFDocument.create(); const pg=await o.copyPages(d,idx); pg.forEach(p=>o.addPage(p)); const bytes=await o.save(); saveBlob(new Blob([bytes],{type:'application/pdf'}),baseName(f)+'-extract.pdf'); show('out','Extracted '+idx.length+' pages');}
+catch(e){fail('out','Could not process this PDF. It may be password protected.');}});
+</script>

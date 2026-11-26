@@ -1,0 +1,29 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("How are words counted?", "Any group of non-space characters counts as a word."),
+        new("Is my text saved?", "No. It stays in your browser."),
+        new("What is a good length for a blog post?", "It depends on the topic. Long enough to answer the question fully, not padded with filler.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<textarea id="t" rows="9" style="width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px" placeholder="Type or paste your text here"></textarea><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Word Counter</h2>
+  <p>Type or paste your text into the box. Counts update as you type: words, characters with and without spaces, sentences, paragraphs and estimated reading and speaking time.</p>
+  <h2>About this tool</h2>
+  <p>Words are groups of characters separated by spaces or line breaks. Sentences are counted by ending punctuation, and paragraphs by blank lines. Reading time assumes about 225 words per minute and speaking time about 130, which are typical averages. Writers use word counts for essays, social posts and SEO articles, and many character limits (such as meta descriptions) are easier to hit when you can see the count live.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+function upd(){const s=$('t').value; const w=(s.trim().match(/\S+/g)||[]).length, c=s.length, cn=s.replace(/\s/g,'').length, se=(s.match(/[^.!?]+[.!?]+/g)||[]).length, p=s.split(/\n\s*\n/).filter(x=>x.trim()).length;
+show('out',fmtN(w,0)+' words',[fmtN(c,0)+' characters ('+fmtN(cn,0)+' without spaces)',se+' sentences, '+p+' paragraphs','Reading time: about '+Math.max(w?1:0,Math.round(w/225))+' min (225 wpm)','Speaking time: about '+Math.max(w?1:0,Math.round(w/130))+' min (130 wpm)']);}
+$('t').addEventListener('input',upd); upd();
+</script>

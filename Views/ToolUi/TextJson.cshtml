@@ -1,0 +1,63 @@
+@model ToolDefinition
+<p>Paste JSON, then format, minify or validate it.</p>
+<label for="t">JSON input</label>
+<textarea id="t" class="text-editor code-editor" rows="5" spellcheck="false" placeholder="Paste JSON here">{"items":[1,2],"label":"New York"}</textarea>
+<div class="row">
+  <button id="fmt" type="button">Format</button>
+  <button id="min" type="button" class="secondary">Minify</button>
+  <button id="val" type="button" class="secondary">Validate</button>
+  <button id="copy" type="button" class="secondary">Copy</button>
+</div>
+<div id="out" class="result" aria-live="polite"></div>
+<p class="muted">Your input stays in your browser.</p>
+<script>
+function formatTokens(text, pretty) {
+  const tokens = text.match(/"[^"\\]*(?:\\[\s\S][^"\\]*)*"|[{}\[\]:,]|[^\x20\t\r\n{}\[\]:,"]+/g);
+  if (!pretty) return tokens.join('');
+  let depth = 0, size = 0;
+  const pieces = [];
+  const line = () => '\n' + '  '.repeat(depth);
+  for (let index = 0; index < tokens.length; index++) {
+    const token = tokens[index], next = tokens[index + 1], previous = tokens[index - 1];
+    let piece = token;
+    if (token === '{' || token === '[') {
+      depth++;
+      if (depth > 100) throw new Error('This document is too deeply nested to format. Try Minify or Validate.');
+      if (next !== '}' && next !== ']') piece += line();
+    } else if (token === '}' || token === ']') {
+      depth--;
+      if (previous !== '{' && previous !== '[') piece = line() + token;
+    } else if (token === ',') {
+      piece += line();
+    } else if (token === ':') {
+      piece += ' ';
+    }
+    size += piece.length;
+    if (size > 200000) throw new Error('The formatted result is too large. Try Minify or Validate.');
+    pieces.push(piece);
+  }
+  return pieces.join('');
+}
+
+function run(mode) {
+  const input = $('t').value;
+  if (!input.trim()) { show('out', 'Enter JSON to check.', false); return; }
+  if (input.length > 200000) { show('out', 'Enter JSON with 200,000 characters or fewer.', false); return; }
+  try {
+    JSON.parse(input);
+  } catch (error) {
+    show('out', 'Invalid JSON: ' + error.message, false);
+    return;
+  }
+  try {
+    if (mode !== 'validate') $('t').value = formatTokens(input, mode === 'format');
+    show('out', 'Valid JSON' + (mode === 'validate' ? '.' : mode === 'format' ? '. Formatted with two spaces.' : '. Minified.'), false);
+  } catch (error) {
+    show('out', error.message, false);
+  }
+}
+$('fmt').onclick = () => run('format');
+$('min').onclick = () => run('minify');
+$('val').onclick = () => run('validate');
+$('copy').onclick = () => copyFromEditor('t', 'out');
+</script>

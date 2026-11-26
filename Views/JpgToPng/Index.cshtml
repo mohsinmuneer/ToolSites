@@ -1,0 +1,27 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Does JPG to PNG improve quality?", "No. It prevents further loss, but it cannot restore detail already lost."),
+        new("Why is the PNG bigger?", "PNG is lossless and usually larger than JPG for photos."),
+        new("Are my files uploaded?", "No. Everything runs on your device.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><input id="f" type="file" accept="image/jpeg" multiple><button id="go" type="button">Convert</button></div><div id="links"></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the JPG to PNG Converter</h2>
+  <p>Select one or more JPG files and press Convert, then download each PNG from the links that appear.</p>
+  <h2>About this tool</h2>
+  <p>PNG stores images without further quality loss, so it is handy when you plan to edit and re-save an image many times, or when a site only accepts PNG. Converting a JPG to PNG does not restore detail that JPG compression already removed, and the PNG file is usually larger. Conversion runs entirely in your browser.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',async()=>{$('links').textContent=''; $('out').textContent=''; await imageConvert('f','image/png','png',0.92,'links');});
+</script>

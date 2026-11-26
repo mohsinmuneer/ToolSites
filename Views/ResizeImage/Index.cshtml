@@ -1,0 +1,33 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Does resizing reduce quality?", "Shrinking keeps images sharp. Enlarging makes them look blurry."),
+        new("What is aspect ratio?", "The proportion between width and height. Keeping it avoids stretching."),
+        new("Is my image uploaded?", "No. It stays on your device.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><input id="f" type="file" accept="image/jpeg,image/png,image/webp"></div><div class="row"><label>Width (px) <input id="w" type="number" step="any" value="" style="width:90px" min="1"></label><label>Height (px) <input id="h" type="number" step="any" value="" style="width:90px" min="1"></label><label><input id="lock" type="checkbox" checked> Keep aspect ratio</label><label>Format <select id="fmt"><option value="image/jpeg" selected>JPG</option><option value="image/png">PNG</option></select></label><button id="go" type="button">Resize</button></div><div id="links"></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Resize Image</h2>
+  <p>Choose an image and its size appears in the boxes. Type a new width or height; with "Keep aspect ratio" ticked the other value follows automatically. Pick JPG or PNG and press Resize to get your download link.</p>
+  <h2>About this tool</h2>
+  <p>Resizing changes the number of pixels in an image. Making an image smaller is safe, but enlarging it makes it look soft because no new detail is created. Keeping the aspect ratio prevents the picture from looking stretched. Resizing is done in your browser with the canvas, so your image is not uploaded. For web use, JPG is best for photos and PNG for graphics with transparency.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+let ar=1;
+$('f').addEventListener('change',async()=>{const f=$('f').files[0]; if(!f) return; try{const i=await loadImage(f); ar=i.naturalWidth/i.naturalHeight; $('w').value=i.naturalWidth; $('h').value=i.naturalHeight; show('out','Original size: '+i.naturalWidth+' x '+i.naturalHeight+' px');}catch(e){fail('out',e.message);}});
+$('w').addEventListener('input',()=>{if($('lock').checked&&num('w')>0) $('h').value=Math.round(num('w')/ar);});
+$('h').addEventListener('input',()=>{if($('lock').checked&&num('h')>0) $('w').value=Math.round(num('h')*ar);});
+on('go',async()=>{const f=$('f').files[0], w=Math.round(num('w')), h=Math.round(num('h')); $('links').textContent=''; if(!f) return fail('out','Please choose an image.'); if(!(w>0)||!(h>0)||w>8000||h>8000) return fail('out','Enter a width and height between 1 and 8000 pixels.');
+try{const i=await loadImage(f), mime=$('fmt').value, c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); if(mime==='image/jpeg'){x.fillStyle='#fff'; x.fillRect(0,0,w,h);} x.drawImage(i,0,0,w,h);
+const b=await canvasBlob(c,mime,0.92), ext=mime==='image/png'?'png':'jpg'; addLink('links',b,baseName(f)+'-'+w+'x'+h+'.'+ext,'Download '+w+' x '+h+' '+ext.toUpperCase()+' ('+kb(b.size)+')'); show('out','Resized to '+w+' x '+h+' px');}catch(e){fail('out',e.message);}});
+</script>

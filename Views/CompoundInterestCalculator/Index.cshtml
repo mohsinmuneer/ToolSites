@@ -1,0 +1,29 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("What is compound interest?", "Interest calculated on both your original money and the interest it has already earned."),
+        new("Does compounding more often help?", "Slightly. Daily compounding grows a little faster than yearly at the same rate, but the rate itself matters far more."),
+        new("Are taxes and fees included?", "No. Taxes, fees and inflation are not included.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Starting amount ($) <input id="pr" type="number" step="any" value="5000" style="width:120px"></label><label>Monthly deposit ($) <input id="mc" type="number" step="any" value="200" style="width:100px"></label><label>Annual rate (%) <input id="ar" type="number" step="any" value="7" style="width:70px"></label><label>Years <input id="yr" type="number" step="any" value="20" style="width:70px"></label><label>Compounding <select id="cmp"><option value="12" selected>Monthly</option><option value="4">Quarterly</option><option value="2">Semi-annually</option><option value="1">Yearly</option><option value="365">Daily</option></select></label><button id="go" type="button">Calculate</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Compound Interest Calculator</h2>
+  <p>Enter your starting amount, how much you add each month, the expected annual interest rate, the number of years and how often interest compounds. The calculator shows your final balance, how much you put in and how much came from interest.</p>
+  <h2>About this tool</h2>
+  <p>Compound interest means you earn interest on your earlier interest. The tool converts your annual rate and compounding frequency into an equivalent monthly rate, then applies it month by month and adds your deposit at the end of each month. Real returns vary and are not guaranteed, taxes and fees are ignored, and a constant rate is only an assumption, so use it to compare scenarios rather than to predict results.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',()=>{const P=num('pr')||0,M=num('mc')||0,r=num('ar'),y=num('yr'),n=parseInt($('cmp').value,10); if(isNaN(r)||r<0||!(y>0)) return fail('out','Enter a rate (0 or more) and a number of years above 0.');
+const im=Math.pow(1+r/100/n,n/12)-1; let bal=P; const months=Math.round(y*12); for(let k=0;k<months;k++){bal=bal*(1+im)+M;}
+const dep=P+M*months; show('out','Final balance: '+money(bal),['Total deposits: '+money(dep),'Interest earned: '+money(bal-dep),'Deposits are added at the end of each month.']);});
+</script>

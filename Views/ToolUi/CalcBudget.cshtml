@@ -1,0 +1,27 @@
+@model ToolDefinition
+<label>Monthly take-home income ($) <input id="inc" type="number" min="0" step="any" value="4000"></label>
+<h3>Monthly expenses ($)</h3>
+<table>
+ <tr><td>Rent / mortgage</td><td><input class="ex need" type="number" min="0" step="any" value="1200"></td></tr>
+ <tr><td>Utilities</td><td><input class="ex need" type="number" min="0" step="any" value="200"></td></tr>
+ <tr><td>Groceries</td><td><input class="ex need" type="number" min="0" step="any" value="450"></td></tr>
+ <tr><td>Transport</td><td><input class="ex need" type="number" min="0" step="any" value="250"></td></tr>
+ <tr><td>Insurance / health</td><td><input class="ex need" type="number" min="0" step="any" value="250"></td></tr>
+ <tr><td>Debt payments</td><td><input class="ex sav" type="number" min="0" step="any" value="200"></td></tr>
+ <tr><td>Savings</td><td><input class="ex sav" type="number" min="0" step="any" value="400"></td></tr>
+ <tr><td>Dining, fun, shopping</td><td><input class="ex want" type="number" min="0" step="any" value="500"></td></tr>
+ <tr><td>Other</td><td><input class="ex want" type="number" min="0" step="any" value="100"></td></tr>
+</table>
+<button id="go" type="button">Calculate</button>
+<div id="out" class="result" aria-live="polite"></div>
+<script>
+const sum = (c) => [...document.querySelectorAll('.ex.' + c)].reduce((s, i) => s + (parseFloat(i.value) || 0), 0);
+$('go').onclick = () => {
+  const inc = num('inc'), n = sum('need'), w = sum('want'), s = sum('sav'), tot = n + w + s, left = inc - tot;
+  if (inc <= 0) { show('out', 'Enter your monthly income.', false); return; }
+  const pc = (v) => fix(v / inc * 100, 1) + '%';
+  show('out', [(left >= 0 ? 'Left over: ' : 'Over budget by: ') + usd(Math.abs(left)) + ' per month',
+    'Total expenses: ' + usd(tot) + ' (' + pc(tot) + ' of income)',
+    'Needs ' + pc(n) + ' | Wants ' + pc(w) + ' | Savings and debt ' + pc(s) + '   (50/30/20 guide: 50 | 30 | 20)']);
+};
+</script>

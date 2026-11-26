@@ -1,0 +1,15 @@
+@model ToolDefinition
+<div class="row"><label>Units <select id="u"><option value="us">Pounds and inches</option><option value="m">Kilograms and centimeters</option></select></label></div>
+<div class="row"><label><span id="wl">Weight (lb)</span> <input id="w" type="number" min="0" step="any" value="160"></label>
+<label><span id="hl">Height (in)</span> <input id="h" type="number" min="0" step="any" value="68"></label></div>
+<button id="go" type="button">Calculate BMI</button>
+<div id="out" class="result" aria-live="polite"></div>
+<script>
+$('u').onchange = () => { const m = $('u').value === 'm'; $('wl').textContent = m ? 'Weight (kg)' : 'Weight (lb)'; $('hl').textContent = m ? 'Height (cm)' : 'Height (in)'; $('w').value = m ? 72 : 160; $('h').value = m ? 173 : 68; };
+$('go').onclick = () => {
+  const w = num('w'), h = num('h'); if (w <= 0 || h <= 0) { show('out', 'Enter weight and height.', false); return; }
+  const bmi = $('u').value === 'm' ? w / Math.pow(h / 100, 2) : 703 * w / (h * h);
+  const c = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal weight' : bmi < 30 ? 'Overweight' : 'Obesity range';
+  show('out', ['BMI ' + bmi.toFixed(1) + ' (' + c + ')', 'For adults only. BMI is a screening number, not a diagnosis. Ask a doctor about your health.']);
+};
+</script>

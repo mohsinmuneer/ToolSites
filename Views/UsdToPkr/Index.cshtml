@@ -1,0 +1,31 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Where do I get today's rate?", "From the State Bank of Pakistan, your bank or an exchange company. Rates change daily."),
+        new("Why does the tool not fetch live rates?", "Live rates need a paid or limited data service, so you enter the rate you want to use."),
+        new("Do fees change the result?", "Yes. Transfer fees and spreads reduce what you receive.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Rate (1 USD = PKR) <input id="rate" type="number" step="any" value="280" style="width:110px"></label><label>USD <input id="a" type="number" step="any" value="100" style="width:130px"></label>=<label>PKR <input id="b" type="number" step="any" value="" style="width:150px"></label></div><p class="muted">Enter today's rate from your bank, exchange company or State Bank of Pakistan. The pre-filled rate is only an example.</p><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the USD to PKR Converter</h2>
+  <p>Type the exchange rate you want to use, then enter dollars to see rupees or rupees to see dollars. Because bank, open-market and remittance rates differ every day, the tool lets you enter the exact rate that applies to your transaction.</p>
+  <h2>About this tool</h2>
+  <p>Amount in PKR = USD x rate, and USD = PKR / rate. Banks, exchange companies and money transfer services all quote slightly different rates and add fees, so the amount you actually receive can be lower than the mid-market rate. For remittances, compare the final PKR you will receive, not only the headline rate.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+const rt=()=>parseFloat($('rate').value);
+$('a').addEventListener('input',()=>{const v=parseFloat($('a').value),r=rt(); $('b').value=(Number.isFinite(v)&&r>0)?+(v*r).toFixed(2):'';});
+$('b').addEventListener('input',()=>{const v=parseFloat($('b').value),r=rt(); $('a').value=(Number.isFinite(v)&&r>0)?+(v/r).toFixed(2):'';});
+$('rate').addEventListener('input',()=>$('a').dispatchEvent(new Event('input')));
+$('a').dispatchEvent(new Event('input'));
+</script>

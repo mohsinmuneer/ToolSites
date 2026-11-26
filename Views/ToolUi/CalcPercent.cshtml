@@ -1,0 +1,16 @@
+@model ToolDefinition
+<h3>What is X% of Y?</h3>
+<div class="row"><input id="a1" type="number" step="any" placeholder="X"> % of <input id="b1" type="number" step="any" placeholder="Y"> <button id="g1" type="button">Calculate</button></div>
+<div id="o1" class="result"></div>
+<h3>X is what percent of Y?</h3>
+<div class="row"><input id="a2" type="number" step="any" placeholder="X"> is what % of <input id="b2" type="number" step="any" placeholder="Y"> <button id="g2" type="button">Calculate</button></div>
+<div id="o2" class="result"></div>
+<h3>Percentage change</h3>
+<div class="row">From <input id="a3" type="number" step="any" placeholder="Old"> to <input id="b3" type="number" step="any" placeholder="New"> <button id="g3" type="button">Calculate</button></div>
+<div id="o3" class="result"></div>
+<script>
+$('g1').onclick = () => show('o1', fix(num('a1') * num('b1') / 100, 4));
+$('g2').onclick = () => { const y = num('b2'); show('o2', y === 0 ? 'Y cannot be 0.' : fix(num('a2') / y * 100, 4) + '%'); };
+$('g3').onclick = () => { const o = num('a3'); if (o === 0) { show('o3', 'Old value cannot be 0.'); return; }
+  const c = (num('b3') - o) / Math.abs(o) * 100; show('o3', (c >= 0 ? '+' : '') + fix(c, 4) + '% (' + (c >= 0 ? 'increase' : 'decrease') + ')'); };
+</script>

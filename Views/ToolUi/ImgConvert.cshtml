@@ -1,0 +1,52 @@
+@model ToolDefinition
+@{
+    var options = Model.Opts!;
+    var source = options["accept"].Split('/')[1].ToUpperInvariant();
+    var target = options["ext"].ToUpperInvariant();
+}
+<p>Choose one or more @source images, then download the converted @target copies.</p>
+<div class="row"><label>@source images <input id="f" type="file" accept="@options["accept"]" multiple></label></div>
+<button id="go" type="button">Convert to @target</button>
+<div id="out" class="result" aria-live="polite"></div><ul id="links"></ul>
+<p class="muted">Your files stay in your browser. Up to 20 files, 20 MB each.</p>
+<script>
+const formats = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(options));
+$('go').onclick = async () => {
+  const files = [...$('f').files];
+  if (!files.length) { show('out', 'Choose at least one file.', false); return; }
+  if (files.length > 20) { show('out', 'Choose up to 20 files at a time.', false); return; }
+  clearDownloadLinks('links');
+  $('go').disabled = true;
+  let converted = 0;
+  try {
+    for (const [index, file] of files.entries()) {
+      show('out', 'Converting file ' + (index + 1) + ' of ' + files.length + '...', false);
+      try {
+        if (file.size > 20 * 1048576) throw new Error('Choose a file of 20 MB or less.');
+        if (file.type && file.type !== formats.accept) throw new Error('Choose a file in the requested source format.');
+        const image = await loadImage(file);
+        if (!fitsCanvas(image.naturalWidth, image.naturalHeight)) throw new Error('The image has too many pixels. Resize it before converting.');
+        const canvas = document.createElement('canvas');
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        const context = canvas.getContext('2d');
+        if (formats.mime === 'image/jpeg') {
+          context.fillStyle = '#fff';
+          context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        context.drawImage(image, 0, 0);
+        const result = await canvasBlob(canvas, formats.mime, 0.92);
+        canvas.width = canvas.height = 0;
+        if (!result || result.type !== formats.mime) throw new Error('The browser could not create the requested image.');
+        addLink('links', result, file.name.replace(/\.[^.]+$/, '') + '.' + formats.ext);
+        converted++;
+      } catch (error) {
+        showFileError(file.name, error instanceof Error ? error.message : 'Could not decode this image.');
+      }
+    }
+    show('out', converted + ' of ' + files.length + ' converted. ' + (converted ? 'Download the images below.' : 'Check the file messages below.'), false);
+  } finally {
+    $('go').disabled = false;
+  }
+};
+</script>

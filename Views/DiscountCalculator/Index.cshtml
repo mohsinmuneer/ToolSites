@@ -1,0 +1,28 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("Is 20% plus 10% the same as 30% off?", "No. Successive discounts multiply, so 20% then 10% equals 28% off in total."),
+        new("Does the result include tax?", "No. Add sales tax separately."),
+        new("How do I find the discount percentage from two prices?", "Use the percentage calculator and choose the percent change option.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><label>Original price ($) <input id="price" type="number" step="any" value="120" style="width:110px"></label><label>Discount (%) <input id="d1" type="number" step="any" value="25" style="width:70px"></label><label>Extra discount (%) <input id="d2" type="number" step="any" value="0" style="width:70px"></label><button id="go" type="button">Calculate</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Discount Calculator</h2>
+  <p>Type the original price and the discount percentage. If the store also offers an extra coupon, such as another 10% off the sale price, put it in the extra discount box. You will see the final price and the total amount saved.</p>
+  <h2>About this tool</h2>
+  <p>A single discount gives price x (1 - discount / 100). Two discounts apply one after the other, so 25% off followed by 10% off is not 35% off: it is 1 - 0.75 x 0.90 = 32.5% off. That is why the tool shows the real total percentage you save. Tax is not included, so add it afterwards with a sales tax calculator if needed.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+on('go',()=>{const p=num('price'),a=num('d1'),b=num('d2')||0; if(!(p>=0)||!(a>=0)||a>100||b<0||b>100) return fail('out','Enter a price and discounts between 0 and 100.');
+const f=p*(1-a/100)*(1-b/100); show('out','Final price: '+money(f),['You save: '+money(p-f)+' ('+fmtN((p-f)/(p||1)*100,2)+'% off the original)']);});
+</script>

@@ -1,0 +1,7 @@
+@model ToolDefinition
+@foreach (var s in Model.Sections ?? Array.Empty<(string H, string P)>())
+{
+    <h2>@s.H</h2>
+    <p>@s.P</p>
+}
+<partial name="_Faq" model="Model.Faqs ?? Array.Empty<FaqItem>()" />

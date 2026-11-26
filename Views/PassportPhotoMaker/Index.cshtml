@@ -1,0 +1,34 @@
+@{
+    var faqs = new List<FaqItem>
+    {
+        new("What size is a US passport photo?", "2 x 2 inches, or 600 x 600 pixels at 300 dpi."),
+        new("Does it check if my photo is accepted?", "No. It only crops and resizes. Check official guidelines."),
+        new("Is my photo uploaded?", "No. It stays on your device.")
+    };
+}
+<h1>@ViewData["H1"]</h1>
+<div class="card">
+<div class="row"><input id="f" type="file" accept="image/jpeg,image/png,image/webp"><label>Size <select id="sz"><option value="600x600" selected>US passport 2x2 in (600x600 px)</option><option value="413x531">35x45 mm (413x531 px)</option><option value="413x413">35x35 mm (413x413 px)</option></select></label></div><div class="row"><label>Zoom <input id="z" type="range" min="1" max="3" step="0.05" value="1"></label><label>Left/Right <input id="x" type="range" min="-100" max="100" value="0"></label><label>Up/Down <input id="y" type="range" min="-100" max="100" value="0"></label></div><canvas id="cv" style="max-width:100%;border:1px solid var(--line);background:#fff"></canvas><div class="row"><button id="go" type="button">Download JPG</button></div><div id="out" class="result" aria-live="polite"></div>
+</div>
+
+<partial name="_AdSlot" model='"SlotTop"' />
+
+<div class="card">
+  <h2>How to use the Passport Photo Maker</h2>
+  <p>Choose a front-facing photo, pick a size, then use the zoom and position sliders until your face is centered. Press Download to save the cropped JPG at the exact pixel size.</p>
+  <h2>About this tool</h2>
+  <p>The US passport photo is 2 x 2 inches, which is 600 x 600 pixels at 300 dpi. Many other countries use 35 x 45 mm (413 x 531 pixels). This tool only crops and resizes your photo. It does not check head size, background colour, expression or lighting, and it does not remove backgrounds, so please read the official requirements before submitting. Everything runs in your browser and your photo is never uploaded.</p>
+  <partial name="_Faq" model="faqs" />
+</div>
+<partial name="_RelatedTools" />
+
+<script>
+let img=null;
+function draw(){ if(!img) return; const p=$('sz').value.split('x').map(Number), W=p[0], H=p[1], c=$('cv'); c.width=W; c.height=H; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,W,H);
+const z=parseFloat($('z').value), base=Math.max(W/img.naturalWidth,H/img.naturalHeight), s=base*z, dw=img.naturalWidth*s, dh=img.naturalHeight*s;
+const ox=(W-dw)/2+(parseFloat($('x').value)/100)*(dw-W)/2, oy=(H-dh)/2+(parseFloat($('y').value)/100)*(dh-H)/2; x.drawImage(img,ox,oy,dw,dh); }
+$('f').addEventListener('change',async()=>{const f=$('f').files[0]; if(!f) return; try{img=await loadImage(f); draw();}catch(e){fail('out',e.message);}});
+['sz','z','x','y'].forEach(i=>$(i).addEventListener('input',draw));
+on('go',async()=>{ if(!img) return fail('out','Please choose a photo first.'); const b=await canvasBlob($('cv'),'image/jpeg',0.95); saveBlob(b,'passport-photo.jpg'); show('out','Saved passport-photo.jpg ('+kb(b.size)+')',['Always check your country rules for head size, background and lighting. This tool only crops and resizes.']);});
+draw();
+</script>

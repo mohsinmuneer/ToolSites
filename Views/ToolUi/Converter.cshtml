@@ -1,0 +1,62 @@
+@model ToolDefinition
+@{
+    var options = Model.Opts!;
+    var factor = options.GetValueOrDefault("factor", "1");
+    var initial = options.GetValueOrDefault("initial", "1");
+}
+<p>Enter a value in either field to convert it to the other unit.</p>
+@if (options.ContainsKey("rate"))
+{
+    <p class="muted">The rate is an example. Check the current figure and enter it below.</p>
+    <div class="row"><label>PKR per 1 USD <input id="rate" type="number" min="0" step="any" value="@factor"></label></div>
+}
+<div class="row converter-fields">
+    <label>@options["from"] <input id="a" type="number" step="any" value="@initial"></label>
+    <label>@options["to"] <input id="b" type="number" step="any"></label>
+</div>
+<p id="formula" class="muted"></p>
+<div id="out" class="result" aria-live="polite"></div>
+<p class="muted">Your input stays in your browser.</p>
+<script>
+const options = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(options));
+const precision = Number(options.dec || 4);
+const temperature = options.kind === 'temp';
+let edited = 'a';
+
+function convert() {
+  const source = $(edited), target = $(edited === 'a' ? 'b' : 'a');
+  const value = source.valueAsNumber;
+  const factor = options.rate ? $('rate').valueAsNumber : Number(options.factor);
+  $('formula').textContent = temperature ? '°C = (°F − 32) ÷ 1.8'
+    : factor > 0 ? '1 ' + options.from + ' = ' + factor + ' ' + options.to : '';
+  if (!temperature && (!Number.isFinite(factor) || factor <= 0)) {
+    target.value = '';
+    show('out', 'Enter an exchange rate greater than zero.', false);
+    return;
+  }
+  if (!Number.isFinite(value)) {
+    target.value = '';
+    show('out', 'Enter a number in either field.', false);
+    return;
+  }
+  let result;
+  if (temperature) result = edited === 'a' ? (value - 32) / 1.8 : value * 1.8 + 32;
+  else result = edited === 'a' ? value * factor : value / factor;
+  if (!Number.isFinite(result)) {
+    target.value = '';
+    show('out', 'The result is outside the supported range.', false);
+    return;
+  }
+  const rounded = Number(result.toFixed(precision));
+  const display = result && (!rounded || Math.abs(result) >= 1e12) ? result.toExponential(precision) : String(rounded);
+  target.value = display;
+  const unit = edited === 'a' ? options.to : options.from;
+  show('out', display + ' ' + unit, false);
+}
+
+for (const id of ['a', 'b']) {
+  $(id).addEventListener('input', () => { edited = id; convert(); });
+}
+if (options.rate) $('rate').addEventListener('input', convert);
+convert();
+</script>

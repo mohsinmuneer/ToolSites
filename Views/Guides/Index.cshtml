@@ -1,0 +1,12 @@
+<nav aria-label="Breadcrumb" class="muted">
+    <a href="/">Home</a> / <span aria-current="page">Guides</span>
+</nav>
+<h1>Tool guides</h1>
+<p>Follow a worked example, then try the matching tool with your own file.</p>
+@if (!ToolRegistry.IsHidden("split-pdf"))
+{
+    <a class="card" href="/guides/split-pdf-on-iphone">
+        <strong>How to split a PDF on iPhone</strong><br>
+        Save selected pages as a separate PDF using Safari.
+    </a>
+}

@@ -77,6 +77,11 @@
 
 <partial name="_AdSlot" model='"SlotTop"' />
 
+@if (Model.Slug == "split-pdf")
+{
+    <p><a href="/guides/split-pdf-on-iphone">Read the guide to splitting a PDF on iPhone</a>.</p>
+}
+
 <div class="card">
     @if (nextSlug is not null)
     {

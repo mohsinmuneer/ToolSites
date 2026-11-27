@@ -24,8 +24,10 @@ public class HomeController : Controller
     public IActionResult Sitemap()
     {
         var sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
-        foreach (var p in new[] { "", "about", "contact", "privacy", "terms" })
+        foreach (var p in new[] { "", "about", "contact", "privacy", "terms", "guides" })
             sb.Append($"<url><loc>{BaseUrl}/{p}</loc></url>");
+        if (!ToolRegistry.IsHidden("split-pdf"))
+            sb.Append($"<url><loc>{BaseUrl}{GuidesController.SplitPdfPath}</loc><lastmod>2026-11-27</lastmod></url>");
         foreach (var t in ToolRegistry.Visible) sb.Append($"<url><loc>{BaseUrl}/{t.Slug}</loc></url>");
         sb.Append("</urlset>");
         return Content(sb.ToString(), "application/xml", Encoding.UTF8);

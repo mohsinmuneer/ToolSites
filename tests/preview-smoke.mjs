@@ -50,6 +50,22 @@ async function navigate(path, ready) {
 }
 try {
   await send('Emulation.setDeviceMetricsOverride', { width: 360, height: 800, deviceScaleFactor: 1, mobile: true });
+  await navigate('/guides/split-pdf-on-iphone', 'document.readyState === "complete" && !!document.querySelector("article")');
+  assert.equal(await evaluate('document.documentElement.scrollWidth'), 360);
+  const guide = await evaluate(`(() => {
+    const article = document.querySelector('article');
+    return {
+      words: article.textContent.trim().split(/\\s+/).length,
+      toolLink: !!article.querySelector('[href="/split-pdf"]'),
+      canonical: document.querySelector('link[rel="canonical"]').getAttribute('href')
+    };
+  })()`);
+  assert.ok(guide.words >= 500 && guide.words <= 900, 'guide word count ' + guide.words);
+  assert.ok(guide.toolLink);
+  assert.match(guide.canonical, /\/guides\/split-pdf-on-iphone$/);
+  assert.match(await (await fetch(base + '/split-pdf')).text(), /href="\/guides\/split-pdf-on-iphone"/);
+  assert.match(await (await fetch(base + '/sitemap.xml')).text(), /\/guides\/split-pdf-on-iphone<\/loc>/);
+  console.log('PASS mobile guide layout, article length, canonical, sitemap and reciprocal tool links');
   await navigate('/', 'document.readyState === "complete" && !!document.querySelector("#tool-search")');
   assert.equal(await evaluate('document.documentElement.scrollWidth'), 360);
   assert.equal(await evaluate('document.querySelectorAll("[data-tool-card]:not([hidden])").length'), 55);
